@@ -1,4 +1,4 @@
-# Hoennto v0.1.6 beta
+# Hoennto v0.1.7 beta
 
 A mod-only dual-story campaign for gen1recomp **0.3.51**. No custom executable,
 app patch, installer or replacement engine files are needed.
@@ -166,3 +166,27 @@ and the pending live acceptance checklist.
 Emerald clock setup and viewing previously nested a default Emerald options block inside the live session settings. The next options read could select that nested block and lose the follower count and idle preferences. Hoennto now protects the live settings table on stock gen1recomp 0.3.51, using a sandbox-compatible session lookup. WildFollowers preferences continue sharing across FireRed, LeafGreen and Emerald.
 
 The latest source passes 1,806 headless assertions, including 316 checks for the stock clock call, follower counts 0-6, idle preferences and cross-game sharing. Interactive clock/mom-event verification remains pending. Install kanto_hoenn-0.1.6.zip from the v0.1.6 release and restart the app.
+
+## 0.1.7 - Region transition animation
+
+Confirmed travel fades out over 0.28 seconds, shows a small rotating Pokeball in
+the bottom-right of the black loading screen, then fades in over 0.28 seconds.
+The overlay uses only geometric shapes, so it survives cartridge asset eviction
+without importing or redistributing game art. It scales with the drawing surface.
+Gameplay and input are held through the transition; pending input is cleared on
+arrival. The native arrival veil advances alongside the final fade.
+
+Native cartridge loading remains synchronous. Hoennto refreshes the spinner at
+cache read/load/write/mount and image/font upload checkpoints, throttled to 30
+refreshes per second. It pumps OS events without dispatching gameplay or calling
+the game update/draw loop during remount. One indivisible disk read, compilation,
+worker join or long computation can still pause the animation; this is not a
+fully asynchronous loader or a progress percentage. Temporary cache/graphics
+wrappers and the previous canvas are restored after success or failure. A refresh
+error disables extra refreshes without canceling the underlying journey.
+
+Version 0.1.6's clock/options fix is retained. The current full suite passes
+**1,869 headless assertions**, including transition timing, synchronous spinner
+refreshes through the real mod sandbox, graphics/cache restoration and failed
+arrival recovery in both Kanto campaigns. A browser preview of the actual Lua
+shape commands was visually checked; live LOVE rendering remains unverified.

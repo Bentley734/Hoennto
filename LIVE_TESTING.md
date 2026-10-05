@@ -1,4 +1,4 @@
-# Hoennto v0.1.5 live acceptance checklist
+# Hoennto v0.1.7 live acceptance checklist
 
 Status: **not executed in this workspace**. Source and headless fixtures are
 available, but graphical native app control is unavailable in this session.
@@ -41,3 +41,13 @@ companion loaded. They cannot certify arbitrary mod combinations, extracted
 assets, story behavior or runtime compatibility. Installed mod versions are
 shared across launcher games; Hoennto does not invent separate version checks
 or enable companion mods automatically.
+
+### v0.1.7 transition acceptance (pending)
+
+- Verify fade out, bottom-right spinner and fade in for all four travel directions.
+- Verify long loads refresh the spinner at checkpoints without drawing stale cartridge assets.
+- Check windowed/fullscreen, resized windows and any custom viewport/render mods.
+- Hold keyboard/controller/touch inputs while traveling; no menu, reset or movement may run during the transition.
+- Trigger a destination-load failure on a copied campaign; source restores and fades in with its Pokemon intact.
+- Close the window during a load; queued host events should process when the blocking handoff returns.
+- Measure long individual load steps separately: a pause inside one blocking call is a known limitation.

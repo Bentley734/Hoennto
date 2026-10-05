@@ -10,7 +10,8 @@ return function(mod)
   local Campaign = module('campaign.lua')
   local Bridge = module('travel.lua')(Campaign, mod)
   local Presentation = module('presentation.lua')(Campaign, Bridge)
-  local pending, pendingReset, loading
+  local Transition = module('transition.lua')
+  local pending, pendingReset
   local function notice(game, message) Bridge.notice(game, message) end
 
   local function remount(game, payload, host)
@@ -30,6 +31,7 @@ return function(mod)
     for key, value in pairs(fresh) do game[key] = value end
     game.returnToLauncher, game.onExit = host.returnToLauncher, host.onExit
     game.speedOverride = host.speedOverride
+    game._hoenntoTransition = host.transition
     -- The checkpoint already contains the destination save. Native load
     -- reads it twice for boot/continue even though travel immediately enters
     -- the field; avoid parsing the same large campaign from disk again.
@@ -53,7 +55,8 @@ return function(mod)
     if not ok or not payload then notice(game, ok and err or payload); return end
     local savedAt=clock()
     local host = { returnToLauncher = game.returnToLauncher,
-      onExit = game.onExit, speedOverride = game.speedOverride }
+      onExit = game.onExit, speedOverride = game.speedOverride,
+      transition = game._hoenntoTransition }
     local Lifecycle = require('src.core.SessionLifecycle')
     Lifecycle.endGameSession(game)
     -- Native mount eviction drops the audio module but not its worker.
@@ -101,8 +104,40 @@ return function(mod)
       Bridge.applyWildOptions(game,savedState,game.session.version)
       require('src.core.game3.options').bind(game.session,game.options)
     end
-    local nativeUpdate, nativeSave = game.update, game.saveGame
+    local nativeUpdate, nativeSave, nativeDraw = game.update, game.saveGame, game.draw
+    for _,name in ipairs({'keypressed','keyreleased','gamepadpressed','gamepadreleased',
+        'mousepressed','mousemoved','mousereleased','touchpressed','touchmoved',
+        'touchreleased','gamepadaxis','wheelmoved'}) do
+      local native=game[name]
+      if native then game[name]=function(self,...)
+        if not self._hoenntoTransition then return native(self,...) end
+      end end
+    end
+    if nativeDraw then
+      game.draw=function(self,...)
+        local state=self._hoenntoTransition
+        if not state or state.phase~='loading' then nativeDraw(self,...) end
+        if state then Transition.draw(state) end
+      end
+    end
     game.update = function(self, dt)
+      if self._hoenntoTransition then
+        if self._hoenntoTransition.phase=='in' then
+          -- Advance only the native arrival veil while gameplay stays paused,
+          -- so it does not add a second black wait after our fade completes.
+          local ok,Fade=pcall(require,'src.ui.game3.fade')
+          if ok and Fade.MODE and Fade.mode==Fade.MODE.FROM_BLACK
+              and not Fade.doneCb and Fade.tick then Fade.tick(dt) end
+        end
+        local depart=Transition.tick(self,dt)
+        if depart then
+          local target=self._hoenntoTransition.target
+          local ok,err=Transition.withRefresh(self,function()travel(self,target)end)
+          Transition.finish(self)
+          if not ok then notice(self,'Travel canceled: '..tostring(err)) end
+        end
+        return -- hold input/gameplay through both fades and the native handoff
+      end
       if pendingReset then
         local reset=pendingReset;pendingReset=nil
         if self.session.version~=reset.source then notice(self,"Region changed. Reset canceled.");return end
@@ -111,18 +146,10 @@ return function(mod)
         return
       end
       if pending then
-        if not loading then
-          loading=0
-          Presentation.loading(pending)
-          return
-        end
-        loading=loading+math.min(dt or 0,0.1)
-        if loading<0.2 then return end
         local target=pending
-        pending,loading=nil,nil
-        Presentation.closeLoading()
-        travel(self,target)
-        return -- no source callback may run after the profile handoff
+        pending=nil
+        Transition.begin(self,target)
+        return
       end
       Bridge.tick(self)
       return nativeUpdate(self, dt)
@@ -174,5 +201,5 @@ return function(mod)
   mod.exports.syncWildFollowersOptions=function()
     return Bridge.syncWildOptions(mod.game)
   end
-  mod.exports.version = '0.1.6'
+  mod.exports.version = '0.1.7'
 end

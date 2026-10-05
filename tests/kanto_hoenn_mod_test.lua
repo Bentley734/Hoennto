@@ -1,7 +1,7 @@
 package.path='./?.lua;./?/init.lua;'..package.path
 local Sandbox=require('src.mods.Sandbox')
 local root=arg[1] or 'mods/kanto_hoenn'
-local reads={};for _,f in ipairs({'main.lua','session_options.lua','campaign.lua','travel.lua','mount_lifecycle.lua','presentation.lua','reset_menu.lua'}) do local s=assert(io.open(root..'/'..f)):read('*a');reads[f]=s end
+local reads={};for _,f in ipairs({'main.lua','session_options.lua','transition.lua','campaign.lua','travel.lua','mount_lifecycle.lua','presentation.lua','reset_menu.lua'}) do local s=assert(io.open(root..'/'..f)):read('*a');reads[f]=s end
 local C=assert(load(reads['campaign.lua']))()
 local callbacks,hooks={},{}
 local rawGame
@@ -50,7 +50,8 @@ local function depart()
  if dialogOptions and not dialogOptions.hold then dialogOptions.done() end
  assert(dialogOptions.hold,'travel confirmation presented')
  dialogOptions.done();confirm(true)
- rawGame:update(0.1);rawGame:update(0.1);rawGame:update(0.1)
+ rawGame:update(0.1);rawGame:update(0.1);rawGame:update(0.1);rawGame:update(0.1)
+ for i=1,3 do rawGame:update(0.1) end
 end
 package.loaded['src.ui.game3.hud']={openMessage=function(_,m)error('unexpected notice: '..m)end}
 package.loaded['src.core.game3.options']={bind=function(s,o)s.options=o end,block=function(o,id)o[id]=o[id]or{};return o[id]end}
@@ -63,13 +64,19 @@ Schema.newGame=function(o)return {version=current,engine='game3',map=current=='e
  name=o.name,gender=o.gender,trainerId=o.trainerIdLower,secretId=999,flags={},vars={},party={},storage={items={},boxes={}},dex={},modData={}}end
 package.loaded['src.core.game3.save_schema_firered']=Schema
 local Class={};Class.__index=Class
+local failLoad
 function Class.new()return setmetatable({generation=3,phase='boot'},Class)end
 function Class:update()called('native.update:'..current)end
 function Class:saveGame()
  local raw=Schema.toSaveTable(self.session);emit('save.writing',{save=raw});self.save=raw;called('save:'..current);return true
 end
 function Class:quickSaveAllowed()return self.phase=='field' and self.session.map~='EM_INSIDE_OF_TRUCK'end
-function Class:load()called('load:'..current);if self.session==nil and count>0 then SD.load();SD.load();called('checkpoint.load:'..current)end;self.options=C.copy(options);install();emit('game.ready',{game=self})end
+function Class:load()
+ called('load:'..current)
+ if failLoad==current then failLoad=nil;error('destination fixture failed')end
+ if self.session==nil and count>0 then SD.load();SD.load();called('checkpoint.load:'..current)end
+ self.options=C.copy(options);install();emit('game.ready',{game=self})
+end
 function Class:adoptSave()end
 function Class:_enterField(s,reason,opts)self.session=s;self.phase='field';self.callback=opts.fieldCallback;called('enter:'..current..':'..reason)end
 package.loaded['src.core.Game3']=Class
@@ -120,6 +127,17 @@ eq(rawGame.session.flags.HOENN_BADGE,nil,'Hoenn badge remains regional')
 Menu._kind='safari'
 local safari=hooks['ui.start_menu.items'](function(_,i)return i end,rawGame,{{id='exit'}})
 eq(#safari,1,'no travel in safari menu')
+Menu._kind='normal'
+local notices={}
+package.loaded['src.ui.game3.hud'].openMessage=function(_,message)notices[#notices+1]=message end
+local beforeParty=rawGame.session.party[1].exp
+local failureItems=hooks['ui.start_menu.items'](function(_,i)return i end,rawGame,{{id='option'}})
+failLoad='emerald';failureItems[1].onSelect();depart()
+eq(current,kanto,'failed destination restores source profile')
+eq(rawGame.session.party[1].exp,beforeParty,'rollback retains checkpoint roster')
+eq(rawGame._hoenntoTransition,nil,'rollback also completes fade in')
+eq(#notices,1,'rollback reports one failure notice')
+eq(SD.load,diskLoad,'rollback restores temporary save reader')
 rawGame.options.modOptions={kanto_hoenn={sharedWildFollowers={wildsG3FollowerCount=6}}}
 rawGame.session=nil
 eq(pcall(function()emit('game.ready',{game=rawGame})end),true,'title-screen ready with saved follower preferences')
@@ -131,7 +149,7 @@ for i,v in ipairs(calls)do
   eq(calls[i+1]:match('^unmount:'), 'unmount:', 'audio stops before native module eviction')
  end
 end
-eq(checkpointSaves,4,'roundtrip uses one checkpoint per departure plus arrival autosaves')
-eq(audioStops,2,'each departure shuts down its sole audio worker')
+eq(checkpointSaves,6,'roundtrip and rollback use checkpoint and safe arrival saves')
+eq(audioStops,4,'failed destination also shuts down outgoing worker before rollback')
 eq(SD.load,diskLoad,'native save reader restored after remount')
 print('kanto_hoenn_mod_test ('..kanto..'): '..checks..' checks passed through actual mod sandbox')

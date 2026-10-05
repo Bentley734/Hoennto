@@ -1,3 +1,12 @@
+# Hoennto 0.1.7 beta - region transitions
+
+- Fade out before travel and fade in after arrival or successful rollback.
+- Draw a rotating Pokeball in the bottom-right during loading, with no game-art dependency.
+- Refresh at native cache and graphics checkpoints without reentering gameplay; restore temporary wrappers and graphics state on failures.
+- Hold gameplay/input through the transition and clear pending input on arrival.
+- Preserve the 0.1.6 Emerald clock/settings fix and version-1 saves.
+- 1,869 passing headless assertions. Live graphical travel remains pending; individual synchronous operations can still pause the spinner.
+
 # Hoennto 0.1.6 beta - clock settings fix
 
 - Prevent Emerald clock setup/viewing from nesting a default options block and resetting WildFollowers count and idle settings.
