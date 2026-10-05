@@ -1,0 +1,23 @@
+{
+  "id": "kanto_hoenn",
+  "name": "Hoennto",
+  "version": "0.1.5",
+  "api": 2,
+  "entry": "main.lua",
+  "games": [
+    "firered",
+    "leafgreen",
+    "emerald"
+  ],
+  "profile": "content",
+  "category": "CONTENT",
+  "priority": 110,
+  "game_version": ">=0.3.51 <0.3.52",
+  "permissions": [
+    "engine_internals"
+  ],
+  "description": "One trainer across native Kanto and Hoenn stories. Shared Pokemon and Pokedex, separate regional progress. Guided travel, campaign overview and companion-mod checks. Choose FireRed or LeafGreen in Mod Options.",
+  "dependencies": [],
+  "conflicts": [],
+  "github": "Bentley734/Hoennto"
+}
