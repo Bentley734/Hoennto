@@ -4,6 +4,8 @@ return function(mod)
   local function module(name)
     return assert(load(assert(mod:read(name)), '@' .. mod.path .. '/' .. name))()
   end
+  -- Protect flat live options on stock hosts as well as patched hosts.
+  module('session_options.lua')(function() return mod.game and mod.game.session end)
   local MountLifecycle = module('mount_lifecycle.lua')
   local Campaign = module('campaign.lua')
   local Bridge = module('travel.lua')(Campaign, mod)

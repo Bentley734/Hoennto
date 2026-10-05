@@ -160,3 +160,9 @@ Current headless validation: **1,490 passing assertions**. Native Message/Choice
 control flow is exercised, with fixture YES/NO text and missing imported fonts;
 this is not visual QA. See VALIDATION.md and LIVE_TESTING.md for exact coverage
 and the pending live acceptance checklist.
+
+## Clock and follower settings fix
+
+Emerald clock setup and viewing previously nested a default Emerald options block inside the live session settings. The next options read could select that nested block and lose the follower count and idle preferences. Hoennto now protects the live settings table on stock gen1recomp 0.3.51, using a sandbox-compatible session lookup. WildFollowers preferences continue sharing across FireRed, LeafGreen and Emerald.
+
+The latest source passes 1,806 headless assertions, including 316 checks for the stock clock call, follower counts 0–6, idle preferences and cross-game sharing. Interactive clock/mom-event verification remains pending. This source fix has not yet been packaged as a new tagged release.

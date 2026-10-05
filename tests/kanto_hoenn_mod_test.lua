@@ -1,7 +1,7 @@
 package.path='./?.lua;./?/init.lua;'..package.path
 local Sandbox=require('src.mods.Sandbox')
 local root=arg[1] or 'mods/kanto_hoenn'
-local reads={};for _,f in ipairs({'main.lua','campaign.lua','travel.lua','mount_lifecycle.lua','presentation.lua','reset_menu.lua'}) do local s=assert(io.open(root..'/'..f)):read('*a');reads[f]=s end
+local reads={};for _,f in ipairs({'main.lua','session_options.lua','campaign.lua','travel.lua','mount_lifecycle.lua','presentation.lua','reset_menu.lua'}) do local s=assert(io.open(root..'/'..f)):read('*a');reads[f]=s end
 local C=assert(load(reads['campaign.lua']))()
 local callbacks,hooks={},{}
 local rawGame

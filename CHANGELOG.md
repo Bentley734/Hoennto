@@ -1,3 +1,9 @@
+## Unreleased - clock settings fix
+
+- Prevent Emerald clock setup/viewing from nesting a default options block and resetting WildFollowers count and idle settings.
+- Install the session-options guard through the real mod sandbox; no engine patch is required.
+- Verify the stock clock call and sharing across FireRed, LeafGreen and Emerald with 316 additional checks (1,806 total). Live gameplay verification remains pending.
+
 # Hoennto 0.1.5 beta
 
 - Rename the launcher title, new linked save-slot names and logs to Hoennto.
