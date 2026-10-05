@@ -1,4 +1,4 @@
-# Hoennto v0.1.5 beta
+# Hoennto v0.1.6 beta
 
 A mod-only dual-story campaign for gen1recomp **0.3.51**. No custom executable,
 app patch, installer or replacement engine files are needed.
@@ -19,8 +19,8 @@ current region and tells you which game to import. No ROM data is bundled.
 
 ## Campaign behavior
 
-Your trainer name, gender, Trainer ID/Secret ID, party, boxed Pokémon and
-Pokédex seen/caught records travel together. Pokémon retain their experience,
+Your trainer name, gender, Trainer ID/Secret ID, party, boxed PokÃ©mon and
+PokÃ©dex seen/caught records travel together. PokÃ©mon retain their experience,
 HP/status, IVs/EVs, nicknames, moves/PP, held items and original trainer details.
 Box layout and names also travel.
 
@@ -99,12 +99,12 @@ Each switch logs save, release, load durations and Lua heap size, allowing remai
 
 1287 headless checks pass: campaign 67, mod sandbox/handoff 26, reset/settings/menu 69, repeated capture 800, stock audio lifecycle 325. The lifecycle test performs 80 reloads, verifies constant callback count and garbage collection of all 79 retired audio modules, joins every worker and checks error cleanup/unrelated callback preservation. Live Windows timing still needs testing.
 
-## 0.1.4 — FireRed / LeafGreen support
+## 0.1.4 â€” FireRed / LeafGreen support
 
 One mod supports **FireRed + Emerald** or **LeafGreen + Emerald** on stock
 gen1recomp 0.3.51. Import LeafGreen normally and enable the mod for LeafGreen.
 
-In MODS → Hoennto → OPTIONS, **KANTO GAME** offers **AUTO**, **FIRERED**
+In MODS â†’ Hoennto â†’ OPTIONS, **KANTO GAME** offers **AUTO**, **FIRERED**
 and **LEAFGREEN**. AUTO remembers the Kanto game used by this campaign. For a
 fresh Emerald campaign, it uses FireRed if imported, otherwise LeafGreen.
 When both are imported, select the desired game explicitly. From either Kanto
@@ -165,4 +165,4 @@ and the pending live acceptance checklist.
 
 Emerald clock setup and viewing previously nested a default Emerald options block inside the live session settings. The next options read could select that nested block and lose the follower count and idle preferences. Hoennto now protects the live settings table on stock gen1recomp 0.3.51, using a sandbox-compatible session lookup. WildFollowers preferences continue sharing across FireRed, LeafGreen and Emerald.
 
-The latest source passes 1,806 headless assertions, including 316 checks for the stock clock call, follower counts 0–6, idle preferences and cross-game sharing. Interactive clock/mom-event verification remains pending. This source fix has not yet been packaged as a new tagged release.
+The latest source passes 1,806 headless assertions, including 316 checks for the stock clock call, follower counts 0-6, idle preferences and cross-game sharing. Interactive clock/mom-event verification remains pending. Install kanto_hoenn-0.1.6.zip from the v0.1.6 release and restart the app.

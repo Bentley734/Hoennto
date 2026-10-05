@@ -1,4 +1,4 @@
-## Unreleased - clock settings fix
+# Hoennto 0.1.6 beta - clock settings fix
 
 - Prevent Emerald clock setup/viewing from nesting a default options block and resetting WildFollowers count and idle settings.
 - Install the session-options guard through the real mod sandbox; no engine patch is required.

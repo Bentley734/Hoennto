@@ -174,5 +174,5 @@ return function(mod)
   mod.exports.syncWildFollowersOptions=function()
     return Bridge.syncWildOptions(mod.game)
   end
-  mod.exports.version = '0.1.5'
+  mod.exports.version = '0.1.6'
 end

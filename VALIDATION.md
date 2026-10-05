@@ -41,8 +41,8 @@ for kanto_hoenn_mod_test.lua, or the optional LeafGreen ROM path for
 leafgreen_support_test.lua. Tests and fixture instructions are included in the ZIP;
 engine source, test runtime and original ROMs are not.
 
-## Unreleased clock settings fix
+## v0.1.6 clock settings fix
 
-The full workspace suite now passes 1,806 assertions, including 316 clock/settings checks. The clock regression recreates the stock native Options.block(session.options) call and loads Hoennto's guard through the actual Sandbox.envFor environment. It covers counts 0–6, idle preferences, table identity and sharing across all three games. The local engine also has session-aware reads in four Emerald native screens; the published Hoennto guard is tested against the original stock clock call independently of those edits and WildFollowers' wrapper. Live clock/mom-event verification remains pending.
+The full workspace suite now passes 1,806 assertions, including 316 clock/settings checks. The clock regression recreates the stock native Options.block(session.options) call and loads Hoennto's guard through the actual Sandbox.envFor environment. It covers counts 0-6, idle preferences, table identity and sharing across all three games. The local engine also has session-aware reads in four Emerald native screens; the published Hoennto guard is tested against the original stock clock call independently of those edits and WildFollowers' wrapper. Live clock/mom-event verification remains pending.
 
 Run clock_settings_test.lua from the engine source root with the absolute Hoennto directory as argument 1.
