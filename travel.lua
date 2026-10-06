@@ -3,14 +3,21 @@ return function(Campaign, mod)
 local Bridge = { VERSION = 1 }
 local function req(name) return require(name) end
 local function label(v)
-  return v == "emerald" and "Hoenn (Emerald)"
-    or v == "leafgreen" and "Kanto (LeafGreen)" or "Kanto (FireRed)"
+  local GV=req('src.core.GameVersion')
+  local info=GV.info(v)
+  return info and info.label or tostring(v)
 end
 -- Explicit selection applies in Hoenn. Leaving Kanto always goes to Emerald.
 function Bridge.destination(game)
   local source = game and game.session and game.session.version
+  local selected=mod.options and mod.options.get and mod.options:get('destination_game')
+  if Campaign.validVersion(selected) and selected~=source then return selected end
   if Campaign.isKanto(source) then return "emerald" end
-  if source ~= "emerald" then return nil end
+  if source~='emerald' then
+    if not Campaign.validVersion(source) then return nil end
+    for _,v in ipairs(Campaign.ORDER) do if v~=source and Bridge.available(v) then return v end end
+    return source=='red' and 'blue' or 'red'
+  end
   return Bridge.kantoDestination(game)
 end
 function Bridge.kantoDestination(game)
@@ -28,12 +35,14 @@ function Bridge.kantoDestination(game)
 end
 function Bridge.notice(game, message)
   print("[Hoennto] " .. tostring(message))
+  if game and game.generation and game.generation<3 then game._hoenntoNotice=tostring(message);return end
   local ok, Hud = pcall(req, "src.ui.game3.hud")
   if ok and Hud.openMessage and game and game.phase == "field" then
     Hud.openMessage(game, tostring(message))
   end
 end
 function Bridge.available(target)
+  if not Campaign.validVersion(target) then return false,'Invalid destination.' end
   local Fs = req("src.import.CacheFs")
   if not req("src.import.CacheContract").isReady(target, Fs) then
     return false, "Import " .. label(target) .. "'s ROM in the launcher first."
@@ -65,8 +74,8 @@ function Bridge.compatibility(game,target)
       local a=SD.modEnabled(options,id,source)~=false
       local b=SD.modEnabled(options,id,target)~=false
       local Targets=req('src.mods.ModTargets')
-      a=a and Targets.supports(manifest,source,3)
-      b=b and Targets.supports(manifest,target,3)
+      a=a and Targets.supports(manifest,source,Campaign.generation(source))
+      b=b and Targets.supports(manifest,target,Campaign.generation(target))
       if a~=b then
         issues[#issues+1]=(manifest.name or id)..' must support and be enabled\nin both linked games.'
       elseif a and loader.loaded and not loaded[id] then
@@ -101,6 +110,7 @@ function Bridge.captureWildOptions(game, state)
 end
 function Bridge.applyWildOptions(game, state, target)
   if type(state.wildFollowersOptions)~="table" then return end
+  if Campaign.generation(target)~=3 then return end
   game.options.modOptions=game.options.modOptions or {}
   local buckets=game.options.modOptions
   buckets[Campaign.KEY]=buckets[Campaign.KEY] or {}
@@ -123,7 +133,7 @@ function Bridge.syncWildOptions(game)
   if not game or not game.session or not Campaign.validVersion(game.session.version) then return false end
   local state=game.session.modData and game.session.modData[Campaign.KEY] or {}
   Bridge.captureWildOptions(game,state)
-  for _,target in ipairs({"firered","leafgreen","emerald"}) do
+  for _,target in ipairs(Campaign.ORDER) do
     if target~=game.session.version then Bridge.applyWildOptions(game,state,target) end
   end
   return req("src.core.SaveData").saveOptions(game.options)
@@ -169,7 +179,8 @@ function Bridge.resetPeer(game, target)
   end
   game.options=SD.loadOptions()
   Bridge.applyWildOptions(game,game.session.modData[Campaign.KEY],game.session.version)
-  req("src.core.game3.options").bind(game.session,game.options)
+  if Campaign.runtime then Campaign.runtime.bindOptions(game)
+  else req("src.core.game3.options").bind(game.session,game.options) end
   -- Rotate the clean current save into its backup too; otherwise the source
   -- .bak could still carry an embedded copy of the erased regional story.
   if game:saveGame()~=true then
@@ -201,7 +212,7 @@ function Bridge.afterSave(game, raw)
 end
 function Bridge.prepare(game, target)
   if not game or not game.session or not Campaign.validVersion(target)
-      or target ~= Bridge.destination(game) then return nil, "Invalid destination." end
+      or target == game.session.version then return nil, "Invalid destination." end
   if not game:quickSaveAllowed() then return nil, "Finish the current event before traveling." end
   local ok, err = Bridge.available(target)
   if not ok then return nil, err end
@@ -210,13 +221,14 @@ function Bridge.prepare(game, target)
   local SD = req("src.core.SaveData")
   -- Cart scopes deliberately pin a runtime/save profile. The normal launcher
   -- games are the supported host for this dual-cartridge campaign.
-  if SD.getCart and SD.getCart() then return nil, "Launch normal FireRed, LeafGreen or Emerald to travel." end
+  if SD.getCart and SD.getCart() then return nil, "Launch a normal supported game to travel." end
   -- Register the linked slots before the single source checkpoint. The
   -- native save below persists the live script store and captures all changes.
   local state = Campaign.state(game.save)
   state.travelGuideSeen=true
   local source = game.session.version
-  state.kantoVersion = Campaign.isKanto(source) and source or target
+  if Campaign.isKanto(source) then state.kantoVersion=source
+  elseif Campaign.isKanto(target) then state.kantoVersion=target end
   Bridge.captureWildOptions(game,state)
   if not state.slots[source] then
     state.slots[source] = SD.activeSlot(source) or SD.createSlot(source)
@@ -236,7 +248,8 @@ function Bridge.prepare(game, target)
   -- Other mods keep their own per-game enablement and compatibility gates.
   SD.setModEnabled(game.options, Campaign.KEY, true, source)
   SD.setModEnabled(game.options, Campaign.KEY, true, target)
-  req("src.core.game3.options").bind(game.session, game.options)
+  if Campaign.runtime then Campaign.runtime.bindOptions(game)
+  else req("src.core.game3.options").bind(game.session, game.options) end
   game.session.modData = game.session.modData or {}
   game.session.modData[Campaign.KEY] = state
   if game:saveGame() ~= true then return nil, "Could not save the campaign. Travel canceled." end
@@ -250,11 +263,22 @@ function Bridge.resume(game, payload)
   local state, version = payload.state, payload.target
   assert(Campaign.validVersion(version), "invalid travel version")
   Bridge.applyWildOptions(game,state,version)
-  local Schema = req("src.core.game3.save_schema_firered")
   local raw = payload.arrivalSave or Campaign.restore(state, version)
   payload.arrivalSave = nil
+  if Campaign.generation(version)<3 then
+    local isNew=not raw
+    raw=raw or Campaign.runtime.newSave(game,version,state.shared)
+    if Campaign.roster then Campaign.roster.project(raw,state) else Campaign.apply(raw,state.shared) end
+    raw.modData=raw.modData or {};raw.modData[Campaign.KEY]=Campaign.copy(state)
+    Campaign.runtime.resume(game,raw,isNew)
+    game._regionTravelAutosave=true
+    Bridge.tick(game)
+    return
+  end
+  local Schema = req("src.core.game3.save_schema_firered")
   local reason, session
   if raw then
+    if Campaign.roster then Campaign.roster.project(raw,state) end
     session = Schema.fromSaveTable(raw)
     reason = "continue"
   else
@@ -265,6 +289,7 @@ function Bridge.resume(game, payload)
       engineOptions = game.options })
     raw = Schema.toSaveTable(session)
     Campaign.apply(raw, state.shared)
+    if Campaign.roster then Campaign.roster.project(raw,state) end
     session = Schema.fromSaveTable(raw)
     reason = "new_game"
   end
@@ -281,7 +306,7 @@ function Bridge.resume(game, payload)
     Mods.emit("save.created", { save = session })
   end
   game:_enterField(session, reason, {
-    fieldCallback = reason == "new_game" and version == "emerald" and "truck" or nil,
+    fieldCallback = reason == "new_game" and (version == "emerald" or version=='ruby' or version=='sapphire') and "truck" or nil,
   })
   if reason == "continue" and Mods.wants("save.loaded") then
     Mods.emit("save.loaded", { save = session, meta = session.meta })
@@ -294,7 +319,7 @@ function Bridge.resume(game, payload)
 end
 function Bridge.tick(game)
   if not game._regionTravelAutosave or not game.session
-      or game.session.map == "EM_INSIDE_OF_TRUCK" or not game:quickSaveAllowed() then return end
+      or tostring(game.session.map):match('INSIDE_OF_TRUCK$') or not game:quickSaveAllowed() then return end
   game._regionTravelAutosave = nil
   if game:saveGame() ~= true then
     Bridge.notice(game, "Travel arrived, but saving failed. Save before quitting.")

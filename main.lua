@@ -8,10 +8,14 @@ return function(mod)
   module('session_options.lua')(function() return mod.game and mod.game.session end)
   local MountLifecycle = module('mount_lifecycle.lua')
   local Campaign = module('campaign.lua')
+  local Adapter=module('runtime.lua')
+  Campaign.runtime=Adapter
+  Campaign.roster=module('roster.lua')(Campaign,function()return mod.game end)
   local Bridge = module('travel.lua')(Campaign, mod)
   local Presentation = module('presentation.lua')(Campaign, Bridge)
   local Transition = module('transition.lua')
   local pending, pendingReset
+  local TravelMenu=module('travel_menu.lua')(Campaign,Bridge,function(target)pending=target end)
   local function notice(game, message) Bridge.notice(game, message) end
 
   local function remount(game, payload, host)
@@ -25,10 +29,7 @@ return function(mod)
     -- Keep the exact object referenced by main.lua. All new methods and
     -- FixedStep callbacks bind to this same object, so the app needs no patch.
     MountLifecycle.load(function()
-    local fresh = require('src.core.Game3').new()
-    for key in pairs(game) do game[key] = nil end
-    setmetatable(game, getmetatable(fresh))
-    for key, value in pairs(fresh) do game[key] = value end
+    Adapter.fresh(payload.target,game)
     game.returnToLauncher, game.onExit = host.returnToLauncher, host.onExit
     game.speedOverride = host.speedOverride
     game._hoenntoTransition = host.transition
@@ -58,11 +59,12 @@ return function(mod)
       onExit = game.onExit, speedOverride = game.speedOverride,
       transition = game._hoenntoTransition }
     local Lifecycle = require('src.core.SessionLifecycle')
-    Lifecycle.endGameSession(game)
+    Adapter.endGame(game)
     -- Native mount eviction drops the audio module but not its worker.
     -- Join it while it is still the sole owner of the fixed named channels.
     MountLifecycle.stopAudio()
     Lifecycle.endMountedSession(payload.source)
+    Adapter.evict(payload.source)
     local releasedAt=clock()
     local arrived, failure = pcall(remount, game, payload, host)
     if arrived then
@@ -74,9 +76,10 @@ return function(mod)
     if not arrived then
       -- Both positions and the complete shared roster are in the source
       -- checkpoint before the first runtime is released.
-      Lifecycle.endGameSession(game)
+      Adapter.endGame(game)
       MountLifecycle.stopAudio()
       Lifecycle.endMountedSession(target)
+      Adapter.evict(target)
       payload.target = payload.source
       local restored, restoreError = pcall(remount, game, payload, host)
       if restored then notice(game, 'Travel canceled: ' .. tostring(failure))
@@ -92,24 +95,40 @@ return function(mod)
     local game = mod.game
     if game and ev.save then Bridge.prepareSave(game, ev.save) end
   end, -100000)
+  mod.events:on('save.loading',function(ev)
+    local raw=ev.raw;local state=raw and raw.modData and raw.modData[Campaign.KEY]
+    if state and state.collection then Campaign.roster.project(raw,state) end
+  end,-100000)
 
   mod.events:on('game.ready', function(ev)
     local game = ev.game
-    if not game or game.generation ~= 3 then return end
+    if not game then return end
+    Adapter.bind(game)
     -- Wrap the complete update, rather than switching inside a fixed step,
     -- menu callback, VM instruction or renderer invocation.
     local savedState=game.session and game.session.modData and game.session.modData[Campaign.KEY]
     savedState=Bridge.savedWildOptions(game,savedState)
     if savedState and game.session then
       Bridge.applyWildOptions(game,savedState,game.session.version)
-      require('src.core.game3.options').bind(game.session,game.options)
+      Adapter.bindOptions(game)
     end
-    local nativeUpdate, nativeSave, nativeDraw = game.update, game.saveGame, game.draw
+    local nativeUpdate, nativeDraw = game.update, game.draw
     for _,name in ipairs({'keypressed','keyreleased','gamepadpressed','gamepadreleased',
         'mousepressed','mousemoved','mousereleased','touchpressed','touchmoved',
-        'touchreleased','gamepadaxis','wheelmoved'}) do
+        'touchreleased','gamepadaxis','wheelmoved','joystickpressed','joystickreleased','joystickaxis','joystickhat','textinput'}) do
       local native=game[name]
       if native then game[name]=function(self,...)
+        if self._hoenntoMenu then
+          if name=='touchpressed' or name=='mousepressed' then
+            local a,b,c=...
+            local x,y=name=='touchpressed' and b or a,name=='touchpressed' and c or b
+            if TravelMenu.pointer(self,x,y) then return end
+          end
+          local input=self.input
+          if input and input[name] then return input[name](input,...) end
+          if name:match('^touch') and self.touchControls and self.touchControls[name] then return self.touchControls[name](self.touchControls,...) end
+          return
+        end
         if not self._hoenntoTransition then return native(self,...) end
       end end
     end
@@ -118,9 +137,11 @@ return function(mod)
         local state=self._hoenntoTransition
         if not state or state.phase~='loading' then nativeDraw(self,...) end
         if state then Transition.draw(state) end
+        TravelMenu.draw(self)
       end
     end
     game.update = function(self, dt)
+      if self._hoenntoMenu then TravelMenu.update(self);return end
       if self._hoenntoTransition then
         if self._hoenntoTransition.phase=='in' then
           -- Advance only the native arrival veil while gameplay stays paused,
@@ -138,6 +159,10 @@ return function(mod)
         end
         return -- hold input/gameplay through both fades and the native handoff
       end
+      if self._hoenntoNotice then
+        self._hoenntoMenu={mode='notice',text=self._hoenntoNotice..'\n\nA / B: close'}
+        self._hoenntoNotice=nil;self.input:reset();return
+      end
       if pendingReset then
         local reset=pendingReset;pendingReset=nil
         if self.session.version~=reset.source then notice(self,"Region changed. Reset canceled.");return end
@@ -154,8 +179,10 @@ return function(mod)
       Bridge.tick(self)
       return nativeUpdate(self, dt)
     end
-    game.saveGame = function(self, ...)
-      local written = nativeSave(self, ...)
+    local saveMethod=game.generation==3 and 'saveGame' or 'writeSave'
+    local actualSave=game[saveMethod]
+    game[saveMethod] = function(self, ...)
+      local written = actualSave(self, ...)
       if written == true then Bridge.afterSave(self, self.save) end
       return written
     end
@@ -164,16 +191,18 @@ return function(mod)
   mod.hooks:wrap('ui.start_menu.items', function(next, game, items)
     items = next(game, items)
     local session = game and game.session
-    if not session or game.phase ~= 'field' then return items end
-    local Menu = require('src.ui.game3.start_menu')
-    if Menu._kind ~= 'normal' or Menu._tutorial then return items end
-    local target = Bridge.destination(game)
-    if not target then return items end
+    if not session or not Campaign.validVersion(session.version) then return items end
+    if game.generation==3 then
+      if game.phase~='field' then return items end
+      local Menu=require('src.ui.game3.start_menu')
+      if Menu._kind~='normal' or Menu._tutorial then return items end
+    elseif game.generation==2 and game.phase~='play' then return items end
     local row = { id = 'kanto_hoenn_travel',
-      label = target == 'emerald' and 'HOENN' or 'KANTO',
+      label = 'TRAVEL',
       onSelect = function()
-        Menu.close(true)
-        Presentation.request(game,target,function(destination) pending=destination end)
+        if game.generation==3 then require('src.ui.game3.start_menu').close(true)
+        elseif game.generation==2 then game.stack:pop() end
+        TravelMenu.open(game)
       end }
     for i, e in ipairs(items) do
       if e.id == row.id then return items end
@@ -183,23 +212,25 @@ return function(mod)
     return items
   end)
   if mod.options and mod.options.define then
+    local choices={{'AUTO','auto'}}
+    for _,v in ipairs(Campaign.ORDER) do choices[#choices+1]={v:upper(),v} end
     mod.options:define({
       {key='kanto_game',label='KANTO GAME',type='choice',default='auto',
         choices={{'AUTO','auto'},{'FIRERED','firered'},{'LEAFGREEN','leafgreen'}}},
       {key='reset_peer',label='ERASE OTHER REGION SAVE',type='toggle',default=false},
       {key='campaign_overview',label='CAMPAIGN OVERVIEW',type='toggle',default=false},
+      {key='destination_game',label='RESET DESTINATION',type='choice',default='auto',choices=choices},
     })
     module('reset_menu.lua')(mod,function(source,target)
       pendingReset={source=source,target=target}
     end,Bridge.destination,function(game)
-      require('src.ui.game3.mod_manager').close()
-      require('src.ui.game3.option_menu').close()
-      require('src.ui.game3.start_menu').close(true)
-      require('src.ui.game3.message').show(Presentation.overview(game))
+      Adapter.closeMenus(game)
+      TravelMenu.overview(game)
     end)
   end
   mod.exports.syncWildFollowersOptions=function()
     return Bridge.syncWildOptions(mod.game)
   end
-  mod.exports.version = '0.1.7'
+  mod.exports.transfer=Campaign.roster
+  mod.exports.version = '0.2.0'
 end

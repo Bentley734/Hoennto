@@ -54,7 +54,7 @@ eq(summary:find('Oldale Town',1,true)~=nil,true,'readable inactive saved locatio
 eq(summary:find('Story not started',1,true)~=nil,true,'unlinked cartridge summary')
 ready=false
 P.request(game,'emerald',function()error('missing ROM queued')end)
-eq(text:find('Import Hoenn',1,true)~=nil,true,'missing ROM guidance')
+eq(text:find('Import Emerald',1,true)~=nil,true,'missing ROM guidance')
 P.loading('leafgreen')
 eq(text:find('Kanto - LeafGreen',1,true)~=nil,true,'loading names cartridge')
 P.closeLoading();eq(text,nil,'loading closes before save gate')

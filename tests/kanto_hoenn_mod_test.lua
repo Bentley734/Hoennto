@@ -1,7 +1,7 @@
 package.path='./?.lua;./?/init.lua;'..package.path
 local Sandbox=require('src.mods.Sandbox')
 local root=arg[1] or 'mods/kanto_hoenn'
-local reads={};for _,f in ipairs({'main.lua','session_options.lua','transition.lua','campaign.lua','travel.lua','mount_lifecycle.lua','presentation.lua','reset_menu.lua'}) do local s=assert(io.open(root..'/'..f)):read('*a');reads[f]=s end
+local reads={};for _,f in ipairs({'main.lua','session_options.lua','transition.lua','campaign.lua','travel.lua','mount_lifecycle.lua','presentation.lua','reset_menu.lua','runtime.lua','roster.lua','travel_menu.lua'}) do local s=assert(io.open(root..'/'..f)):read('*a');reads[f]=s end
 local C=assert(load(reads['campaign.lua']))()
 local callbacks,hooks={},{}
 local rawGame
@@ -19,6 +19,8 @@ local function install()
  setmetatable(mod,{__index=function(_,k)if k=='game'then return rawGame end end})
  local env=Sandbox.envFor({modId='kanto_hoenn',permissions={engine_internals=true}})
  assert(load(reads['main.lua'],'@main.lua','t',env))()(mod)
+ mod.exports.transfer.name=function(_,id)return tostring(id)end
+ mod.exports.transfer.resolve=function(_,name)return tonumber(name)end
 end
 local kanto=arg[2] or 'firered'
 assert(kanto=='firered' or kanto=='leafgreen')
@@ -37,7 +39,7 @@ SD.loadOptions=function()return C.copy(options)end
 SD.setModEnabled=function(o,id,enabled,v)o.modsByVersion[v]={[id]=enabled}end
 SD.writeSlot=function()return true end
 package.loaded['src.core.SaveData']=SD
-package.loaded['src.core.GameVersion']={set=function(v)current=v;called('version:'..v)end,cachePrefix=function()return current..'/'end}
+package.loaded['src.core.GameVersion']={set=function(v)current=v;called('version:'..v)end,get=function()return current end,generation=function()return 3 end,info=function(v)return {label=v}end,cachePrefix=function()return current..'/'end}
 package.loaded['src.import.CacheFs']={mountVersion=function(v)called('mount:'..v)end}
 package.loaded['src.import.CacheContract']={isReady=function()return true end}
 local Menu={_kind='normal'}
@@ -47,6 +49,18 @@ local dialog,dialogOptions,confirm
 package.loaded['src.ui.game3.message']={show=function(text,opts)dialog=text;dialogOptions=opts end,showStay=function(text)dialog=text end,reset=function()dialog=nil;dialogOptions=nil end}
 package.loaded['src.ui.game3.choice']={yesNo=function(cb)confirm=cb end}
 local function depart()
+ local menu=rawGame._hoenntoMenu
+ local target=current=='emerald' and kanto or 'emerald'
+ rawGame._hoenntoMenu=nil
+ -- Drive the actual panel with the same queued A presses as the native pad.
+ rawGame._hoenntoMenu=menu
+ for i,row in ipairs(menu.rows)do if row.version==target then menu.index=i end end
+ rawGame.input.press='a';rawGame:update(0)
+ rawGame.input.press='a';rawGame:update(0)
+ for i=1,7 do rawGame:update(0.1)end
+ return
+end
+local function legacyDepart()
  if dialogOptions and not dialogOptions.hold then dialogOptions.done() end
  assert(dialogOptions.hold,'travel confirmation presented')
  dialogOptions.done();confirm(true)
@@ -65,7 +79,7 @@ Schema.newGame=function(o)return {version=current,engine='game3',map=current=='e
 package.loaded['src.core.game3.save_schema_firered']=Schema
 local Class={};Class.__index=Class
 local failLoad
-function Class.new()return setmetatable({generation=3,phase='boot'},Class)end
+function Class.new()return setmetatable({generation=3,phase='boot',input={reset=function(self)self.press=nil end,pollPads=function()end,step=function()end,wasPressed=function(self,k)local yes=self.press==k;if yes then self.press=nil end;return yes end}},Class)end
 function Class:update()called('native.update:'..current)end
 function Class:saveGame()
  local raw=Schema.toSaveTable(self.session);emit('save.writing',{save=raw});self.save=raw;called('save:'..current);return true
@@ -96,7 +110,7 @@ local function eq(a,b,msg)checks=checks+1;assert(a==b,msg..': '..tostring(a)..' 
 eq(definedOptions[1].key,'kanto_game','Kanto choice registered through actual sandbox')
 eq(definedOptions[1].choices[3][2],'leafgreen','LeafGreen choice usable')
 local items=hooks['ui.start_menu.items'](function(_,i)return i end,rawGame,{{id='pokemon',label='POKEMON'},{id='option',label='OPTION'},{id='exit',label='EXIT'}})
-eq(items[2].label,'HOENN','destination row before OPTION')
+eq(items[2].label,'TRAVEL','destination row before OPTION')
 items[2].onSelect()
 eq(current,kanto,'menu callback never tears down runtime')
 depart()
@@ -116,7 +130,7 @@ rawGame.session.map='EM_OLDALE_TOWN';rawGame.session.flags.HOENN_BADGE=true
 rawGame.session.party[1].exp=999
 rawGame:update(1/60)
 local second=hooks['ui.start_menu.items'](function(_,i)return i end,rawGame,{{id='option'}})
-eq(second[1].label,'KANTO','destination switches back')
+eq(second[1].label,'TRAVEL','destination switches back')
 second[1].onSelect();depart()
 eq(rawGame,identity,'same host object on roundtrip')
 eq(current,kanto,'roundtrip profile')

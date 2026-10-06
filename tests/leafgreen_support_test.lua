@@ -4,7 +4,7 @@ love=require('tests.love_stub')
 local root=assert(arg[1])
 local C=assert(loadfile(root..'/campaign.lua'))()
 local choice='auto'
-local B=assert(loadfile(root..'/travel.lua'))()(C,{options={get=function()return choice end}})
+local B=assert(loadfile(root..'/travel.lua'))()(C,{options={get=function(_,key)return key=='kanto_game' and choice or 'auto' end}})
 local checks=0
 local function eq(a,b,m)checks=checks+1;assert(a==b,m..': '..tostring(a)..' ~= '..tostring(b))end
 local ready={}
@@ -13,10 +13,10 @@ local function game(v,state)
  return {session={version=v,modData={[C.KEY]=state}},options={}}
 end
 eq(C.validVersion('leafgreen'),true,'LeafGreen campaign accepted')
-eq(C.validVersion('crystal'),false,'unsupported version rejected')
+eq(C.validVersion('crystal'),true,'Crystal campaign accepted')
 eq(B.destination(game('leafgreen')),'emerald','LeafGreen goes to Hoenn')
 eq(B.destination(game('firered')),'emerald','FireRed goes to Hoenn')
-eq(B.destination(game('crystal')),nil,'no unrelated game destination')
+eq(B.destination(game('crystal')),'red','Crystal has travel destination')
 ready.leafgreen=true
 eq(B.destination(game('emerald')),'leafgreen','only imported Kanto game auto-selected')
 ready.firered=true
@@ -82,8 +82,8 @@ local validated=require('src.mods.Manifest').validate(manifest,root)
 eq(validated.id,C.KEY,'engine manifest validator accepts updated mod')
 eq(validated.github,'Bentley734/Hoennto','launcher update repository validated')
 eq(validated.name,'Hoennto','renamed launcher title')
-eq(validated.version,'0.1.7','release version')
-eq(manifest.games[2],'leafgreen','manifest exposes LeafGreen')
+eq(validated.version,'0.2.0','release version')
+eq(manifest.games[10],'leafgreen','manifest exposes LeafGreen')
 for _,f in ipairs({'main.lua','campaign.lua','travel.lua','reset_menu.lua','mount_lifecycle.lua','transition.lua','presentation.lua'}) do
  eq(type(assert(loadfile(root..'/'..f))),'function','production Lua compiles: '..f)
 end

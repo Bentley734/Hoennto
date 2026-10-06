@@ -17,10 +17,10 @@ return function(mod,queue,destination,overview)
  end
  Manager._kantoHoennResetInstaller=function(manager,rows)
   local game=manager.game;local session=game and game.session
-  if not session or (session.version~='firered' and session.version~='leafgreen' and session.version~='emerald') then return end
+  if not session then return end
   local source=session.version
   local target=destination and destination(game) or (source=='emerald' and 'firered' or 'emerald')
-  local region=target=='emerald' and 'HOENN' or 'KANTO'
+  local region=target:upper()
   for _,row in ipairs(rows) do
    if row.id=='campaign_overview' and overview then
     row.label='CAMPAIGN OVERVIEW';row.step=nil;row.value=function()return '' end
@@ -29,11 +29,14 @@ return function(mod,queue,destination,overview)
    if row.id=='reset_peer' then
    row.label='ERASE '..region..' SAVE';row.step=nil;row.value=function()return '' end
    row.activate=function()
-    local title=target=='leafgreen' and 'LEAFGREEN' or target=='firered' and 'FIRERED' or 'EMERALD'
+    local title=target:upper()
     manager:openConfirm({'ERASE '..title..' STORY?', 'SHARED POKEMON KEPT.', 'THIS CANNOT BE UNDONE.'},function()
-     require('src.ui.game3.mod_manager').close()
-     require('src.ui.game3.option_menu').close()
-     require('src.ui.game3.start_menu').close(true)
+     if game.generation==nil or game.generation==3 then
+       require('src.ui.game3.mod_manager').close()
+       require('src.ui.game3.option_menu').close()
+       require('src.ui.game3.start_menu').close(true)
+     elseif game.generation==2 then game.stack:clear()
+     else while game.stack:top() and game.stack:top()~=game.overworld do game.stack:pop() end end
      queue(source,target)
     end)
     -- Destructive action: select NO until the player deliberately changes it.

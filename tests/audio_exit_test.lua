@@ -1,6 +1,7 @@
 -- Actual stock audio worker owner; a fake named-channel worker exposes competing
 -- consumers by rejecting a second start and a wait without the quit command.
 local root=arg[1]
+require('src.core.GameVersion').set('emerald')
 local Mount=assert(loadfile(root.."/mount_lifecycle.lua"))()
 local retired=setmetatable({},{__mode="v"})
 local channels={};local living=0;local starts=0;local joins=0

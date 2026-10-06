@@ -9,7 +9,8 @@ function M.load(fn)
   L.registerProcessShutdown=function(callback)pending[#pending+1]=callback end
   local ok,result=pcall(fn)
   L.registerProcessShutdown=register
-  local audioOk,audio=pcall(require,'src.core.game3.audio')
+  local audioOk,audio=false,nil
+  if require('src.core.GameVersion').generation()==3 then audioOk,audio=pcall(require,'src.core.game3.audio') end
   for _,callback in ipairs(pending) do
     if audioOk and callback==audio.shutdown then
       L._kantoHoennAudioShutdown=callback
@@ -29,7 +30,7 @@ function M.load(fn)
 end
 function M.stopAudio()
   local L=require('src.core.SessionLifecycle')
-  require('src.core.game3.audio').shutdown()
+  if require('src.core.GameVersion').generation()==3 then require('src.core.game3.audio').shutdown() end
   L._kantoHoennAudioShutdown=nil
 end
 return M

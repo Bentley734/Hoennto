@@ -1,3 +1,12 @@
+# Hoennto 0.2.0 beta - eleven-game travel
+
+- Support all eleven games on gen1recomp 0.3.54, including Ruby and Sapphire.
+- Add common TRAVEL picker, controller/keyboard/touch controls and eleven-story overview.
+- Transfer compatible Pokemon across generations; preserve unsupported records and storage overflow in campaign reserve.
+- Archive native per-generation forms, migrate old campaigns and retain separate stories/save slots.
+- Expose live registry resolver hooks for the upcoming eleven-game 1025Dex update; no fixed dex ceilings.
+- Retain fades/spinner and source-checkpoint recovery; add generation-aware native lifecycle/options handling.
+- 3,964 headless assertions pass. Native eleven-game playthroughs remain pending; see VALIDATION.md and LIVE_TESTING.md.
 # Hoennto 0.1.7 beta - region transitions
 
 - Fade out before travel and fade in after arrival or successful rollback.
@@ -34,3 +43,4 @@ field and cannot discover the new repository themselves. Subsequent updates
 require newer tagged GitHub releases with an attached mod ZIP.
 
 Compatible engine: gen1recomp >=0.3.51 <0.3.52. Restart after installation.
+

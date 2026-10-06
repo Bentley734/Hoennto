@@ -1,10 +1,11 @@
 {
   "id": "kanto_hoenn",
   "name": "Hoennto",
-  "version": "0.1.7",
+  "version": "0.2.0",
   "api": 2,
   "entry": "main.lua",
   "games": [
+    "red", "blue", "yellow", "gold", "silver", "crystal", "ruby", "sapphire",
     "firered",
     "leafgreen",
     "emerald"
@@ -12,11 +13,11 @@
   "profile": "content",
   "category": "CONTENT",
   "priority": 110,
-  "game_version": ">=0.3.51 <0.3.52",
+  "game_version": ">=0.3.54 <0.3.55",
   "permissions": [
     "engine_internals"
   ],
-  "description": "One trainer across native Kanto and Hoenn stories. Shared Pokemon and Pokedex, separate regional progress. Guided travel, campaign overview and companion-mod checks. Choose FireRed or LeafGreen in Mod Options.",
+  "description": "One trainer across all eleven native Pokemon stories. Compatible Pokemon and Pokedex travel together; unsupported Pokemon remain in campaign reserve. Separate story progress, bags, money and badges. Supports gen1recomp 0.3.54.",
   "dependencies": [],
   "conflicts": [],
   "github": "Bentley734/Hoennto"
