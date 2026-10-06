@@ -244,5 +244,5 @@ return function(mod)
     return Bridge.syncWildOptions(getGame())
   end
   mod.exports.transfer=Campaign.roster
-  mod.exports.version = '0.2.2'
+  mod.exports.version = '0.2.3'
 end

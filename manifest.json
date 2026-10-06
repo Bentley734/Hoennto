@@ -1,7 +1,7 @@
 {
   "id": "kanto_hoenn",
   "name": "Hoennto",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "api": 2,
   "entry": "main.lua",
   "games": [
@@ -20,11 +20,11 @@
   "profile": "content",
   "category": "CONTENT",
   "priority": 110,
-  "game_version": ">=0.3.54 <0.3.55",
+  "game_version": ">=0.3.54",
   "permissions": [
     "engine_internals"
   ],
-  "description": "One trainer across all eleven native Pokemon stories. Compatible Pokemon and Pokedex travel together; unsupported Pokemon remain in campaign reserve. Separate story progress, bags, money and badges. Supports gen1recomp 0.3.54.",
+  "description": "One trainer across all eleven native Pokemon stories. Compatible Pokemon and Pokedex travel together; unsupported Pokemon remain in campaign reserve. Separate story progress, bags, money and badges. Requires gen1recomp 0.3.54 or newer.",
   "dependencies": [],
   "conflicts": [],
   "github": "Bentley734/Hoennto"

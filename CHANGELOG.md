@@ -1,3 +1,9 @@
+# Hoennto 0.2.3 beta - minimum-only launcher requirement
+
+- Change the launcher requirement to `>=0.3.54`, removing the upper version limit that blocked newer launcher releases.
+- Retain existing campaigns, transfer behavior and audio settings.
+- Validate the range with the native manifest/semver parser; all 4,693 existing automated checks pass.
+
 # Hoennto 0.2.2 beta - Gen 1 to Gen 2 travel fix
 
 - Fix Gen 1 departure resolving Pokemon against an unloaded Gen 1 singleton after the destination runtime mounts. Retain the live native game owner for roster, save and options callbacks.

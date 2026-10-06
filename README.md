@@ -1,6 +1,6 @@
-# Hoennto v0.2.2 beta
+# Hoennto v0.2.3 beta
 
-One trainer across all eleven native stories on gen1recomp **0.3.54**: Red, Blue, Yellow, Gold, Silver, Crystal, FireRed, LeafGreen, Ruby, Sapphire and Emerald.
+One trainer across all eleven native stories on gen1recomp **0.3.54 or newer**: Red, Blue, Yellow, Gold, Silver, Crystal, FireRed, LeafGreen, Ruby, Sapphire and Emerald.
 
 ## Setup
 
@@ -29,7 +29,7 @@ Version-1 campaigns migrate to format 2. Internal ID/save key stays `kanto_hoenn
 
 Use a 1025Dex release that supports both linked games. Its expanded registries and storage adapter use [COMPANION_API.md](COMPANION_API.md). The transfer layer has no fixed national-dex ceilings. Compatible species/follower companions must support and be enabled for both endpoints; detected mismatches block travel.
 
-Launcher updates use `Bentley734/Hoennto` and `kanto_hoenn-0.2.2.zip`.
+The launcher requirement has a minimum of 0.3.54 and no upper version limit. Launcher updates use `Bentley734/Hoennto` and `kanto_hoenn-0.2.3.zip`.
 
 ## Beta validation
 

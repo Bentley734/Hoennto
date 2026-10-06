@@ -1,6 +1,6 @@
-# v0.2.2 native acceptance checklist
+# v0.2.3 native acceptance checklist
 
-Status: pending. Use gen1recomp 0.3.54 and a copied campaign. Record source/destination, companions, expected/actual behavior and logs.
+Status: pending. Use gen1recomp 0.3.54 or newer and a copied campaign. Record launcher version, source/destination, companions, expected/actual behavior and logs.
 
 - With 1025Dex enabled at both endpoints, receive Squirtle in Red and travel to Gold/Silver/Crystal. Check starter moves, PP, DVs and HP, then return without resetting linked stories.
 - Cold-launch Red/Blue/Yellow/Gold/Silver/Crystal with Hoennto enabled; confirm no Gen 3 import errors before starting or continuing.

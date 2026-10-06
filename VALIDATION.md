@@ -1,6 +1,8 @@
-# Validation - v0.2.2 beta
+# Validation - v0.2.3 beta
 
 Executed against gen1recomp 0.3.54 source using Lua 5.3 / Lupa 2.8 and a LuaJIT-style bit shim. Each suite uses a fresh VM.
+
+The v0.2.3 manifest uses `>=0.3.54` with no upper bound. A separate native semver check accepts 0.3.54, 0.3.55, 0.4.0 and 1.0.0, and rejects 0.3.53. This verifies launcher range handling; gameplay validation below identifies the engine source used.
 
 | Suite | Assertions |
 | --- | ---: |
