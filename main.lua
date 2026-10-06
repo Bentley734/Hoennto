@@ -12,7 +12,6 @@ return function(mod)
   Campaign.runtime=Adapter
   Campaign.roster=module('roster.lua')(Campaign,function()return mod.game end)
   local Bridge = module('travel.lua')(Campaign, mod)
-  local Presentation = module('presentation.lua')(Campaign, Bridge)
   local Transition = module('transition.lua')
   local pending, pendingReset
   local TravelMenu=module('travel_menu.lua')(Campaign,Bridge,function(target)pending=target end)
@@ -124,6 +123,14 @@ return function(mod)
             local x,y=name=='touchpressed' and b or a,name=='touchpressed' and c or b
             if TravelMenu.pointer(self,x,y) then return end
           end
+          if name=='mousemoved' and TravelMenu.hover then
+            local x,y=...
+            if TravelMenu.hover(self,x,y) then return end
+          end
+          if name=='wheelmoved' and TravelMenu.wheel then
+            local _,dy=...
+            return TravelMenu.wheel(self,dy)
+          end
           local input=self.input
           if input and input[name] then return input[name](input,...) end
           if name:match('^touch') and self.touchControls and self.touchControls[name] then return self.touchControls[name](self.touchControls,...) end
@@ -143,7 +150,7 @@ return function(mod)
     game.update = function(self, dt)
       if self._hoenntoMenu then TravelMenu.update(self);return end
       if self._hoenntoTransition then
-        if self._hoenntoTransition.phase=='in' then
+        if self.generation==3 and self._hoenntoTransition.phase=='in' then
           -- Advance only the native arrival veil while gameplay stays paused,
           -- so it does not add a second black wait after our fade completes.
           local ok,Fade=pcall(require,'src.ui.game3.fade')
@@ -232,5 +239,5 @@ return function(mod)
     return Bridge.syncWildOptions(mod.game)
   end
   mod.exports.transfer=Campaign.roster
-  mod.exports.version = '0.2.0'
+  mod.exports.version = '0.2.1'
 end

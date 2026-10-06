@@ -31,11 +31,12 @@ return function(mod,queue,destination,overview)
    row.activate=function()
     local title=target:upper()
     manager:openConfirm({'ERASE '..title..' STORY?', 'SHARED POKEMON KEPT.', 'THIS CANNOT BE UNDONE.'},function()
-     if game.generation==nil or game.generation==3 then
+     local generation=require('src.core.GameVersion').generation(source)
+     if generation==3 then
        require('src.ui.game3.mod_manager').close()
        require('src.ui.game3.option_menu').close()
        require('src.ui.game3.start_menu').close(true)
-     elseif game.generation==2 then game.stack:clear()
+     elseif generation==2 then game.stack:clear()
      else while game.stack:top() and game.stack:top()~=game.overworld do game.stack:pop() end end
      queue(source,target)
     end)

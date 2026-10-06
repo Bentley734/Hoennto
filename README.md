@@ -1,4 +1,4 @@
-# Hoennto v0.2.0 beta
+# Hoennto v0.2.1 beta
 
 One trainer across all eleven native stories on gen1recomp **0.3.54**: Red, Blue, Yellow, Gold, Silver, Crystal, FireRed, LeafGreen, Ruby, Sapphire and Emerald.
 
@@ -8,6 +8,8 @@ One trainer across all eleven native stories on gen1recomp **0.3.54**: Red, Blue
 2. Import each destination's original ROM and let its import finish.
 3. Open **START -> TRAVEL**, select a cartridge, then confirm with A or the Travel button. B cancels. Keyboard, controller and touch are supported.
 4. **MODS -> Hoennto -> OPTIONS -> CAMPAIGN OVERVIEW** lists eleven stories and the reserve count.
+
+Destination cards show generation, new/continuing story and ROM availability. Use the D-pad, mouse hover/wheel or tap a card. Long setup notices support pages.
 
 Missing imports and detected companion mismatches explain what to fix before departure. Fades and the bottom-right rotating Pokeball remain enabled. Loading is synchronous: individual blocking operations can pause the spinner between refresh checkpoints.
 
@@ -27,10 +29,10 @@ Version-1 campaigns migrate to format 2. Internal ID/save key stays `kanto_hoenn
 
 1025Dex does not become an eleven-game mod by installing this release. Its upcoming update can provide expanded registries or use [COMPANION_API.md](COMPANION_API.md). The transfer layer has no fixed national-dex ceilings. Compatible species/follower companions must support and be enabled for both endpoints; detected mismatches block travel.
 
-Launcher updates use `Bentley734/Hoennto` and `kanto_hoenn-0.2.0.zip`.
+Launcher updates use `Bentley734/Hoennto` and `kanto_hoenn-0.2.1.zip`.
 
 ## Beta validation
 
-**3,964 headless assertions pass**, including all 110 directed routes and return trips, actual mod sandbox execution and native save schemas for eleven games. Runtime mount/render services use fixtures. Full native graphical playthroughs remain pending. See [VALIDATION.md](VALIDATION.md) and [LIVE_TESTING.md](LIVE_TESTING.md).
+**4,244 headless assertions pass**, including all 110 directed routes and return trips, actual mod sandbox execution and native save schemas for eleven games. Strict startup tests reject all Gen 3 module requests from Gen 1/2; native Gen 2 settings read/write also runs in the suite. Runtime mount/render services use fixtures. Full native graphical playthroughs remain pending. See [VALIDATION.md](VALIDATION.md) and [LIVE_TESTING.md](LIVE_TESTING.md).
 
 Based on the [Pokemon Gen 1 Recompilation Project](https://github.com/bryanthaboi/gen1recomp) by BOIS CLUB GAMES, LLC; inspired by Johnto region travel. No ROMs, launcher executable or extracted game art are redistributed.

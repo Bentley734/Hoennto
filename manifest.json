@@ -1,11 +1,18 @@
 {
   "id": "kanto_hoenn",
   "name": "Hoennto",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "api": 2,
   "entry": "main.lua",
   "games": [
-    "red", "blue", "yellow", "gold", "silver", "crystal", "ruby", "sapphire",
+    "red",
+    "blue",
+    "yellow",
+    "gold",
+    "silver",
+    "crystal",
+    "ruby",
+    "sapphire",
     "firered",
     "leafgreen",
     "emerald"

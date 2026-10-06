@@ -10,13 +10,22 @@ function A.closeMenus(game)
 end
 function A.generation(v) return require('src.core.GameVersion').generation(v) end
 function A.bind(game)
-  if A.generation(require('src.core.GameVersion').get())==3 then return end
   game.generation=A.generation(require('src.core.GameVersion').get())
+  if game.generation==3 then return end
   game.session=game.save
-  local native=game.adoptSave
-  game.adoptSave=function(self,save,...) self.session=save;return native(self,save,...) end
+  if not game._hoenntoNativeAdoptSave then
+    local native=game.adoptSave
+    game._hoenntoNativeAdoptSave=native
+    game.adoptSave=function(self,save,...)
+      self.session=save
+      -- Gen 1 owns options through save.options; NEW GAME and CONTINUE
+      -- replace that save after game.ready, so refresh both live aliases.
+      if self.generation==1 and save then self.options=save.options or self.options end
+      return native(self,save,...)
+    end
+  end
   game.saveGame=function(self,...)return self:writeSave(...)end
-  game.options=game.options or game.save.options
+  game.options=game.options or (game.save and game.save.options) or {}
 end
 function A.fresh(v,host)
   local gen=A.generation(v);local fresh
@@ -45,10 +54,11 @@ function A.endGame(game)
   L.endGameSession(game)
   if native and native~=game then L.endGameSession(native) end
 end
-function A.bindOptions(game)
+function A.bindOptions(game,fullEngine)
   if A.generation(game.session.version)==3 then require('src.core.game3.options').bind(game.session,game.options)
   elseif game.generation==2 then
-    if game.options.saveSlots then
+    if fullEngine or game.options.saveSlots then
+      game._hoenntoEngineOptions=game.options
       assert(require('src.core.SaveData').saveOptions(game.options)~=false,'Could not save destination options')
       game.options=require('src.core.gen2.Save').loadOptions()
     end
@@ -57,7 +67,12 @@ function A.bindOptions(game)
 end
 function A.resume(game,raw,isNew)
   local gen=A.generation(raw.version)
-  if gen==1 then game:restoreSave(raw,nil,{freshBoot=true})
+  if gen==1 then
+    -- Story snapshots omit installation options. Gen 1 reads those options
+    -- directly through save.options, so bind the mounted cartridge's live
+    -- table before restoreSave applies it and before gameplay resumes.
+    raw.options=game.options
+    game:restoreSave(raw,nil,{freshBoot=true})
   else
     if isNew then require('src.core.Game2').anchorNewGameClock(raw) end
     game:continueGame(raw)

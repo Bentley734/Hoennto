@@ -1,7 +1,9 @@
-# v0.2.0 native acceptance checklist
+# v0.2.1 native acceptance checklist
 
 Status: pending. Use gen1recomp 0.3.54 and a copied campaign. Record source/destination, companions, expected/actual behavior and logs.
 
+- Cold-launch Red/Blue/Yellow/Gold/Silver/Crystal with Hoennto enabled; confirm no Gen 3 import errors before starting or continuing.
+- Verify native text speed/battle style and other games' options survive Gen 2 saves and travel.
 - Exercise all 110 routes; save, quit and reopen every linked slot.
 - Upgrade a v0.1.7 campaign; verify identity, collection and old story links.
 - Check controller, keyboard, mouse, touch, scrolling and resized windows.

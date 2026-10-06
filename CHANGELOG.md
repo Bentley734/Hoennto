@@ -1,3 +1,13 @@
+# Hoennto 0.2.1 beta - older-game fixes and travel cards
+
+- Fix Gen 1/2 cold startup by installing the Gen 3 options guard only in its native runtime.
+- Keep older-game arrival fades, notices and follower preference sync free of Gen 3 imports.
+- Use the native Gen 2 options writer and restore native Gen 1 option aliases on save adoption/revisits.
+- Replace the scrolling travel list with colored destination cards, generation/story/ROM status, grid navigation, mouse hover/wheel and touch controls.
+- Refresh the eleven-story overview and departure confirmation; paginate long compatibility notices.
+- 4,244 automated checks pass, including strict no-Gen-3-import tests for all six older games and actual native Gen 2 options persistence. Browser layout inspected; full native playthroughs remain pending.
+- Retain campaign format 2, reserve data, fades/spinner and the 1025Dex transfer API.
+
 # Hoennto 0.2.0 beta - eleven-game travel
 
 - Support all eleven games on gen1recomp 0.3.54, including Ruby and Sapphire.

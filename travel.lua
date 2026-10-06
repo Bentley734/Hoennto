@@ -2,6 +2,17 @@
 return function(Campaign, mod)
 local Bridge = { VERSION = 1 }
 local function req(name) return require(name) end
+local function generation(game)
+  local version=game and game.session and game.session.version
+  if Campaign.validVersion(version) then return Campaign.generation(version) end
+  return game and game.generation or req('src.core.GameVersion').generation()
+end
+local function bindOptions(game)
+  if Campaign.runtime then return Campaign.runtime.bindOptions(game,true) end
+  if generation(game)==3 then return req('src.core.game3.options').bind(game.session,game.options) end
+  if generation(game)==2 then game.options=req('src.core.gen2.Save').loadOptions() end
+  game.session.options=game.options
+end
 local function label(v)
   local GV=req('src.core.GameVersion')
   local info=GV.info(v)
@@ -35,7 +46,7 @@ function Bridge.kantoDestination(game)
 end
 function Bridge.notice(game, message)
   print("[Hoennto] " .. tostring(message))
-  if game and game.generation and game.generation<3 then game._hoenntoNotice=tostring(message);return end
+  if game and generation(game)<3 then game._hoenntoNotice=tostring(message);return end
   local ok, Hud = pcall(req, "src.ui.game3.hud")
   if ok and Hud.openMessage and game and game.phase == "field" then
     Hud.openMessage(game, tostring(message))
@@ -91,6 +102,12 @@ local function wildKey(key)
 end
 function Bridge.captureWildOptions(game, state)
   local values = {}
+  if generation(game)<3 then
+    -- The older carts do not expose the GBA follower preference fields.
+    -- Keep the last GBA settings so saving here cannot erase them.
+    local bucket=game.options and game.options.modOptions and game.options.modOptions[Campaign.KEY]
+    values=Campaign.copy(bucket and bucket.sharedWildFollowers or state.wildFollowersOptions or {})
+  end
   for key,value in pairs(game.session and game.session.options or {}) do
     if wildKey(key) then values[key]=Campaign.copy(value) end
   end
@@ -121,6 +138,10 @@ function Bridge.applyWildOptions(game, state, target)
     loader.modOptions[Campaign.KEY]=loader.modOptions[Campaign.KEY] or {}
     loader.modOptions[Campaign.KEY].sharedWildFollowers=Campaign.copy(state.wildFollowersOptions)
   end
+  -- Preference synchronization can run while an older cartridge is mounted.
+  -- Store the shared values now, then bind the GBA block after its own engine
+  -- is mounted. Requiring a GBA profile here loads the wrong engine resources.
+  if generation(game)<3 then return end
   local Options=req("src.core.game3.options")
   local Profile=req("src.core.game3.profile")
   local block=Options.block(game.options,Profile.of(target).optionsBlock)
@@ -136,6 +157,7 @@ function Bridge.syncWildOptions(game)
   for _,target in ipairs(Campaign.ORDER) do
     if target~=game.session.version then Bridge.applyWildOptions(game,state,target) end
   end
+  if generation(game)==2 then return req('src.core.gen2.Save').saveOptions(game.options) end
   return req("src.core.SaveData").saveOptions(game.options)
 end
 function Bridge.savedWildOptions(game, state)
@@ -179,8 +201,7 @@ function Bridge.resetPeer(game, target)
   end
   game.options=SD.loadOptions()
   Bridge.applyWildOptions(game,game.session.modData[Campaign.KEY],game.session.version)
-  if Campaign.runtime then Campaign.runtime.bindOptions(game)
-  else req("src.core.game3.options").bind(game.session,game.options) end
+  bindOptions(game)
   -- Rotate the clean current save into its backup too; otherwise the source
   -- .bak could still carry an embedded copy of the erased regional story.
   if game:saveGame()~=true then
@@ -248,8 +269,7 @@ function Bridge.prepare(game, target)
   -- Other mods keep their own per-game enablement and compatibility gates.
   SD.setModEnabled(game.options, Campaign.KEY, true, source)
   SD.setModEnabled(game.options, Campaign.KEY, true, target)
-  if Campaign.runtime then Campaign.runtime.bindOptions(game)
-  else req("src.core.game3.options").bind(game.session, game.options) end
+  bindOptions(game)
   game.session.modData = game.session.modData or {}
   game.session.modData[Campaign.KEY] = state
   if game:saveGame() ~= true then return nil, "Could not save the campaign. Travel canceled." end
