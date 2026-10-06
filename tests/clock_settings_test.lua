@@ -1,4 +1,5 @@
 local modRoot=arg[1]
+require('src.core.GameVersion').set('emerald')
 local active='emerald'
 package.loaded['src.core.game3.profile']={FALLBACK_ID='firered',active=function()return {optionsBlock=active}end,of=function(v)return {optionsBlock=v}end}
 local Options=require('src.core.game3.options')
