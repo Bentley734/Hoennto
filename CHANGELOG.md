@@ -1,3 +1,11 @@
+# Hoennto 0.2.2 beta - Gen 1 to Gen 2 travel fix
+
+- Fix Gen 1 departure resolving Pokemon against an unloaded Gen 1 singleton after the destination runtime mounts. Retain the live native game owner for roster, save and options callbacks.
+- Newly received Squirtle with Tackle and Tail Whip can transfer from Red/Blue/Yellow to Gold/Silver/Crystal and back.
+- Preserve current DVs and stat experience between Gen 1 and Gen 2; derive the native HP DV and retain GB archives for GBA roundtrips.
+- 4,693 automated checks pass. Separate integration passes with 1025Dex v1.2.15 transfer/storage adapters; full native playthrough remains pending.
+- Retain campaign format 2, existing save links and the companion transfer API.
+
 # Hoennto 0.2.1 beta - older-game fixes and travel cards
 
 - Fix Gen 1/2 cold startup by installing the Gen 3 options guard only in its native runtime.

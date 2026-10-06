@@ -145,7 +145,15 @@ function R.convert(record,target)
     end
     require('src.core.game3.pokemon').applyStats(m)
   else
-    m.dvs=m.dvs or {};m.statExp=m.statExp or {}
+    -- The GB generations share the four DV nibbles and five effort words.
+    -- Use their current values when crossing between them, including gains
+    -- since an archived destination form was captured. GBA arrivals still
+    -- retain that destination form's native values when one exists.
+    if from<3 then
+      m.dvs=C.copy(src.dvs or {});m.statExp=C.copy(src.statExp or {})
+      m.dvs.special=m.dvs.special or m.dvs.specialAttack or m.dvs.specialDefense
+      m.statExp.special=m.statExp.special or m.statExp.specialAttack or m.statExp.specialDefense
+    else m.dvs=m.dvs or {};m.statExp=m.statExp or {} end
     for k,v in pairs(pairsOf) do
       if m.dvs[v]==nil then m.dvs[v]=math.floor((src.ivs and src.ivs[k] or 0)/2) end
       if m.statExp[v]==nil then m.statExp[v]=0 end
@@ -156,7 +164,9 @@ function R.convert(record,target)
         ppUps=type(old)=='table' and old.ppUps or math.floor((src.ppBonusesPacked or 0)/4^(i-1))%4}
     end
     local def=data().pokemon[species]
-    if gen==2 and record.shiny and not record.forms['2'] then m.dvs.attack=2;m.dvs.defense=10;m.dvs.speed=10;m.dvs.special=10 end
+    if from==3 and gen==2 and record.shiny and not record.forms['2'] then m.dvs.attack=2;m.dvs.defense=10;m.dvs.speed=10;m.dvs.special=10 end
+    -- Gen 1 reads an explicit HP DV; Gen 2 derives it from the other four.
+    m.dvs.hp=(m.dvs.attack%2)*8+(m.dvs.defense%2)*4+(m.dvs.speed%2)*2+m.dvs.special%2
     if gen==1 then m.exp=src.exp or src.experience;m.stats=require('src.pokemon.Stats').calc(def,m.level,m.dvs,m.statExp)
     else m.experience=src.exp or src.experience;m.stats=require('src.battle.gen2.Mon').stats(def.baseStats,m.dvs,m.level,m.statExp);m.types=def.types;m.name=def.name;m.shiny=require('src.battle.gen2.Mon').vanillaShiny(m.dvs);m.gender=require('src.battle.gen2.Mon').vanillaGender(def,m.dvs) end
     m.maxHp=m.stats.hp

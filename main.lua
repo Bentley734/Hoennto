@@ -1,16 +1,20 @@
 -- Cartridge travel lives entirely in this mod. The host keeps its Game table;
 -- only its live native runtime/profile is rebuilt between whole updates.
 return function(mod)
+  -- Gen 1's mod facade resolves an evictable module singleton. Keep the
+  -- actual owner from game.ready, which travel rebuilds in place.
+  local liveGame
+  local function getGame() return liveGame or mod.game end
   local function module(name)
     return assert(load(assert(mod:read(name)), '@' .. mod.path .. '/' .. name))()
   end
   -- Protect flat live options on stock hosts as well as patched hosts.
-  module('session_options.lua')(function() return mod.game and mod.game.session end)
+  module('session_options.lua')(function() local game=getGame();return game and game.session end)
   local MountLifecycle = module('mount_lifecycle.lua')
   local Campaign = module('campaign.lua')
   local Adapter=module('runtime.lua')
   Campaign.runtime=Adapter
-  Campaign.roster=module('roster.lua')(Campaign,function()return mod.game end)
+  Campaign.roster=module('roster.lua')(Campaign,getGame)
   local Bridge = module('travel.lua')(Campaign, mod)
   local Transition = module('transition.lua')
   local pending, pendingReset
@@ -91,7 +95,7 @@ return function(mod)
   end
 
   mod.events:on('save.writing', function(ev)
-    local game = mod.game
+    local game = getGame()
     if game and ev.save then Bridge.prepareSave(game, ev.save) end
   end, -100000)
   mod.events:on('save.loading',function(ev)
@@ -102,6 +106,7 @@ return function(mod)
   mod.events:on('game.ready', function(ev)
     local game = ev.game
     if not game then return end
+    liveGame=game
     Adapter.bind(game)
     -- Wrap the complete update, rather than switching inside a fixed step,
     -- menu callback, VM instruction or renderer invocation.
@@ -236,8 +241,8 @@ return function(mod)
     end)
   end
   mod.exports.syncWildFollowersOptions=function()
-    return Bridge.syncWildOptions(mod.game)
+    return Bridge.syncWildOptions(getGame())
   end
   mod.exports.transfer=Campaign.roster
-  mod.exports.version = '0.2.1'
+  mod.exports.version = '0.2.2'
 end

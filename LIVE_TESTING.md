@@ -1,7 +1,8 @@
-# v0.2.1 native acceptance checklist
+# v0.2.2 native acceptance checklist
 
 Status: pending. Use gen1recomp 0.3.54 and a copied campaign. Record source/destination, companions, expected/actual behavior and logs.
 
+- With 1025Dex enabled at both endpoints, receive Squirtle in Red and travel to Gold/Silver/Crystal. Check starter moves, PP, DVs and HP, then return without resetting linked stories.
 - Cold-launch Red/Blue/Yellow/Gold/Silver/Crystal with Hoennto enabled; confirm no Gen 3 import errors before starting or continuing.
 - Verify native text speed/battle style and other games' options survive Gen 2 saves and travel.
 - Exercise all 110 routes; save, quit and reopen every linked slot.
@@ -15,7 +16,7 @@ Status: pending. Use gen1recomp 0.3.54 and a copied campaign. Record source/dest
 - Confirm an entirely incompatible party returns to the source checkpoint.
 - Reset every inactive destination; preserve shared collection and other stories.
 - Verify missing-import and companion mismatch errors before destination slot creation.
-- With future eleven-game 1025Dex, test expanded species/move/item IDs, canonical names, load order, dex and reserve recovery across every generation.
+- With eleven-game 1025Dex, test expanded species/move/item IDs, canonical names, load order, dex and reserve recovery across every generation.
 - Measure repeated-trip memory/audio/timings; check Windows shutdown after travel.
 - Complete native stories/postgame and verify launcher release updates.
 
