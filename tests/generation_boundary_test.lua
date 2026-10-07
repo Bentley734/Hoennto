@@ -7,7 +7,7 @@ local C=assert(loadfile(root..'/campaign.lua'))()
 local checks=0
 local function eq(a,b,msg) checks=checks+1;assert(a==b,msg..': '..tostring(a)..' ~= '..tostring(b)) end
 local reads={}
-for _,name in ipairs({'main.lua','session_options.lua','transition.lua','campaign.lua','travel.lua','mount_lifecycle.lua','presentation.lua','reset_menu.lua','runtime.lua','roster.lua','travel_menu.lua'}) do
+for _,name in ipairs({'main.lua','oak_intro.lua','session_options.lua','transition.lua','campaign.lua','travel.lua','mount_lifecycle.lua','presentation.lua','reset_menu.lua','runtime.lua','roster.lua','travel_menu.lua'}) do
   reads[name]=assert(io.open(root..'/'..name)):read('*a')
 end
 local SD={loadOptions=function()return {}end,saveOptions=function()return true end}

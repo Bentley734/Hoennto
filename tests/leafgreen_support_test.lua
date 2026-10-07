@@ -82,7 +82,7 @@ local validated=require('src.mods.Manifest').validate(manifest,root)
 eq(validated.id,C.KEY,'engine manifest validator accepts updated mod')
 eq(validated.github,'Bentley734/Hoennto','launcher update repository validated')
 eq(validated.name,'Hoennto','renamed launcher title')
-eq(validated.version,'0.2.3','release version')
+eq(validated.version,'0.2.4','release version')
 eq(manifest.games[10],'leafgreen','manifest exposes LeafGreen')
 for _,f in ipairs({'main.lua','campaign.lua','travel.lua','reset_menu.lua','mount_lifecycle.lua','transition.lua','presentation.lua'}) do
  eq(type(assert(loadfile(root..'/'..f))),'function','production Lua compiles: '..f)
