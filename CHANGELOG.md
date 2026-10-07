@@ -1,3 +1,12 @@
+# Hoennto 0.2.4 beta - Oak intro protection and follower recall
+
+- Recall WildFollowers 3 companions before Oak's Gen 1 approach, hold them through the escort/lab speech and restore their normal controller afterward.
+- Animate visible companions shrinking into Pokeballs without changing follower preferences or party records.
+- Keep the exact queued Oak actor scheduled if a people-list rebuild loses it, preserving native movement callbacks and dialogue.
+- Cover fresh entry and unfinished-story revisits with imported Pokemon, including FireRed Charmander to Red.
+- 18,900 assertions pass on both engine 0.3.54 and 0.3.58; 48 additional native runs with installed WildFollowers finish without overlap. The exact reported spontaneous freeze remains unconfirmed; the regression reproduces and recovers a lost-NPC callback freeze.
+- Retain campaign format 2 and the minimum-only launcher requirement.
+
 # Hoennto 0.2.3 beta - minimum-only launcher requirement
 
 - Change the launcher requirement to `>=0.3.54`, removing the upper version limit that blocked newer launcher releases.

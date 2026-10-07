@@ -1,7 +1,8 @@
-# v0.2.3 native acceptance checklist
+# v0.2.4 native acceptance checklist
 
 Status: pending. Use gen1recomp 0.3.54 or newer and a copied campaign. Record launcher version, source/destination, companions, expected/actual behavior and logs.
 
+- With newest WildFollowers, travel FireRed Charmander to a Red linked save previously visited only in the bedroom. Enter the grass: verify recall before Oak approaches, dialogue, lab escort, starter speech and follower return. Repeat in Blue and Yellow; preserve the imported party and native starter selection.
 - With 1025Dex enabled at both endpoints, receive Squirtle in Red and travel to Gold/Silver/Crystal. Check starter moves, PP, DVs and HP, then return without resetting linked stories.
 - Cold-launch Red/Blue/Yellow/Gold/Silver/Crystal with Hoennto enabled; confirm no Gen 3 import errors before starting or continuing.
 - Verify native text speed/battle style and other games' options survive Gen 2 saves and travel.

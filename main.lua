@@ -10,6 +10,7 @@ return function(mod)
   end
   -- Protect flat live options on stock hosts as well as patched hosts.
   module('session_options.lua')(function() local game=getGame();return game and game.session end)
+  module('oak_intro.lua')(mod, getGame)
   local MountLifecycle = module('mount_lifecycle.lua')
   local Campaign = module('campaign.lua')
   local Adapter=module('runtime.lua')
@@ -244,5 +245,5 @@ return function(mod)
     return Bridge.syncWildOptions(getGame())
   end
   mod.exports.transfer=Campaign.roster
-  mod.exports.version = '0.2.3'
+  mod.exports.version = '0.2.4'
 end

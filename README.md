@@ -1,4 +1,4 @@
-# Hoennto v0.2.3 beta
+# Hoennto v0.2.4 beta
 
 One trainer across all eleven native stories on gen1recomp **0.3.54 or newer**: Red, Blue, Yellow, Gold, Silver, Crystal, FireRed, LeafGreen, Ruby, Sapphire and Emerald.
 
@@ -21,6 +21,8 @@ Native representations are archived per generation. Same-generation transfers re
 
 Each cartridge keeps its own badges, flags, bags, money, PC items, daycare, healing locations and story unlocks. First travel creates a new linked slot instead of replacing an unrelated save. Later visits resume its saved location. Ruby/Sapphire/Emerald use native truck initialization. Older games enter their native new-save world; this beta does not replay every naming/introduction screen. Normal saves update the collection; linked-slot loading projects it before native validation.
 
+In Gen 1, WildFollowers 3 companions recall into Pokeballs before Oak approaches at the grass boundary. They stay recalled through his escort and starter speech, then return. Hoennto preserves Oak's native script and can restore a queued moving Oak NPC lost from the update list. Imported Pokemon remain with you.
+
 **RESET DESTINATION** selects the inactive story for the erase action. Confirmation defaults to NO. Shared Pokemon and other stories remain. Native follower preferences continue sharing where supported.
 
 ## Compatibility
@@ -29,10 +31,10 @@ Version-1 campaigns migrate to format 2. Internal ID/save key stays `kanto_hoenn
 
 Use a 1025Dex release that supports both linked games. Its expanded registries and storage adapter use [COMPANION_API.md](COMPANION_API.md). The transfer layer has no fixed national-dex ceilings. Compatible species/follower companions must support and be enabled for both endpoints; detected mismatches block travel.
 
-The launcher requirement has a minimum of 0.3.54 and no upper version limit. Launcher updates use `Bentley734/Hoennto` and `kanto_hoenn-0.2.3.zip`.
+The launcher requirement has a minimum of 0.3.54 and no upper version limit. Launcher updates use `Bentley734/Hoennto` and `kanto_hoenn-0.2.4.zip`.
 
 ## Beta validation
 
-**4,693 headless assertions pass**, including all 110 directed routes and return trips, actual mod sandbox execution and native save schemas for eleven games. The runtime fixture uses the native Gen 1 loader facade and checks newly received Squirtle across all nine Gen 1-to-Gen 2 routes. A separate integration run passes with the installed 1025Dex transfer/storage adapters. Strict startup tests reject all Gen 3 module requests from Gen 1/2; native Gen 2 settings read/write also runs in the suite. Runtime mount/render services use fixtures. Full native graphical playthroughs remain pending. See [VALIDATION.md](VALIDATION.md) and [LIVE_TESTING.md](LIVE_TESTING.md).
+**18,900 headless assertions pass on engine 0.3.54 and 0.3.58**, including all 110 directed routes and return trips, actual mod sandbox execution and native save schemas for eleven games. The runtime fixture uses the native Gen 1 loader facade and checks newly received Squirtle across all nine Gen 1-to-Gen 2 routes. A separate integration run passes with the installed 1025Dex transfer/storage adapters. Strict startup tests reject all Gen 3 module requests from Gen 1/2; native Gen 2 settings read/write also runs in the suite. Runtime mount/render services use fixtures. Full native graphical playthroughs remain pending. See [VALIDATION.md](VALIDATION.md) and [LIVE_TESTING.md](LIVE_TESTING.md).
 
 Based on the [Pokemon Gen 1 Recompilation Project](https://github.com/bryanthaboi/gen1recomp) by BOIS CLUB GAMES, LLC; inspired by Johnto region travel. No ROMs, launcher executable or extracted game art are redistributed.
