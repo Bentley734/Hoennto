@@ -42,7 +42,28 @@ local function each(raw,fn)
     for b,box in ipairs(raw.boxes or {raw.box or {}}) do for s,m in ipairs(box) do fn(m,false,b,s) end end
   end
 end
+-- An empty string is truthy in Lua and suppresses every native name fallback.
+-- GB uses nil for an un-nicknamed Pokemon; keep that meaning across travel.
+local function blank(value)
+  return type(value)=='string' and not value:find('%S')
+end
+function R.repairNames(raw)
+  if not raw then return end
+  local gen=C.generation(raw.version)
+  each(raw,function(mon)
+    if blank(mon.nickname) then mon.nickname=nil end
+    if mon.name==nil or blank(mon.name) then
+      if gen==3 then
+        -- Save loading can precede the mounted ROM's species registry.
+        -- Leave nil for the native resolver until that registry is ready.
+        local ok,name=pcall(function()return require('src.core.game3.pokemon').name(mon.species)end)
+        mon.name=ok and name or nil
+      else local def=(data().pokemon or {})[mon.species];mon.name=def and def.name or mon.species end
+    end
+  end)
+end
 function R.capture(raw,state)
+  R.repairNames(raw)
   local gen=C.generation(raw.version)
   local collection=state.collection or {nextId=0,records={},dex={seen={},owned={}}}
   local existing={};for _,r in ipairs(collection.records) do existing[r.id]=r end
@@ -52,6 +73,7 @@ function R.capture(raw,state)
     if not id or seen[id] then collection.nextId=collection.nextId+1;id=collection.nextId;mon._hoenntoId=id end
     seen[id]=true
     local record=existing[id] or {id=id,forms={}}
+    local archivedItem=record.item
     record.forms[tostring(gen)]=C.copy(mon)
     record.mon=C.copy(mon);record.version=raw.version;record.party=party;record.box=b;record.slot=s
     if gen==3 then record.shiny=require('src.core.game3.pokemon').isShiny(mon) else record.shiny=mon.shiny end
@@ -63,6 +85,7 @@ function R.capture(raw,state)
     end
     local item=mon.item or mon.heldItem
     record.item=item and item~=0 and R.name('items',item,gen) or nil
+    if gen==1 then record.item=mon._hoenntoHeldItem or archivedItem or record.item end
     live[#live+1]=record
   end)
   -- Missing projected IDs were released/traded away. Missing reserve IDs
@@ -110,10 +133,14 @@ function R.convert(record,target)
   -- Letters belong to their native story. Reserve their carrier rather than
   -- reinterpreting incompatible mail/item indices in another generation.
   if from~=gen and (src.mail or src.mailIndex and src.mailIndex~=255) then return nil,'mail' end
-  local item=record.item and R.resolve('items',record.item,gen)
-  if record.item and (gen==1 or not item) then return nil,'item' end
+  -- Gen 1 has no held-item slot. Archive its canonical identity on the mon
+  -- instead of excluding the carrier; restore it in a compatible cartridge.
+  local item=gen~=1 and record.item and R.resolve('items',record.item,gen) or nil
+  if record.item and gen~=1 and not item then return nil,'item' end
   if from==gen then
     local m=C.copy(src);m.species=species;m.item=item;m.heldItem=item
+    m._hoenntoHeldItem=gen==1 and record.item or nil
+    R.repairNames({version=target,party={m}})
     if gen==3 then m.moves=moves
     else for i,id in ipairs(moves) do m.moves[i].id=id end end
     return m
@@ -123,6 +150,7 @@ function R.convert(record,target)
   m.otId=src.otId;m.otName=src.otName or src.ot;m.ot=m.otName
   m.status=nativeStatus(src,gen);m.sleepTurns=src.sleepTurns or src.sleep
   m.sleep=m.sleepTurns;m.isEgg=src.isEgg or src.egg;m.item=item;m.heldItem=item
+  m._hoenntoHeldItem=gen==1 and record.item or nil
   m.happiness=src.happiness or src.friendship or m.happiness or 70;m.friendship=m.happiness
   if gen==3 then
     m.exp=src.experience or src.exp;m.moves=moves;m.pp={};m.ivs=m.ivs or {};m.evs=m.evs or {}
@@ -173,6 +201,7 @@ function R.convert(record,target)
   end
   local oldMax=src.maxHp or src.stats and src.stats.hp or src.hp or 1
   m.hp=math.max(0,math.min(m.maxHp,math.ceil((src.hp or oldMax)*m.maxHp/math.max(1,oldMax))))
+  R.repairNames({version=target,party={m}})
   return m
 end
 function R.project(raw,state)

@@ -19,7 +19,7 @@ return function(mod)
   local Bridge = module('travel.lua')(Campaign, mod)
   local Transition = module('transition.lua')
   local pending, pendingReset
-  local TravelMenu=module('travel_menu.lua')(Campaign,Bridge,function(target)pending=target end)
+  local TravelMenu=module('travel_menu.lua')(Campaign,Bridge,function(target)pending=target end,mod.assets)
   local function notice(game, message) Bridge.notice(game, message) end
 
   local function remount(game, payload, host)
@@ -102,6 +102,7 @@ return function(mod)
   mod.events:on('save.loading',function(ev)
     local raw=ev.raw;local state=raw and raw.modData and raw.modData[Campaign.KEY]
     if state and state.collection then Campaign.roster.project(raw,state) end
+    Campaign.roster.repairNames(raw)
   end,-100000)
 
   mod.events:on('game.ready', function(ev)
@@ -245,5 +246,5 @@ return function(mod)
     return Bridge.syncWildOptions(getGame())
   end
   mod.exports.transfer=Campaign.roster
-  mod.exports.version = '0.2.4'
+  mod.exports.version = '0.2.7'
 end

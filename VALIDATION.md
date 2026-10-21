@@ -1,4 +1,4 @@
-# Validation - v0.2.4 beta
+# Validation - v0.2.7 beta
 
 Executed against gen1recomp 0.3.54 and the installed 0.3.58 source using Lua 5.3 / Lupa 2.8 and a LuaJIT-style bit shim. Each suite uses a fresh VM.
 
@@ -6,7 +6,7 @@ The manifest uses `>=0.3.54` with no upper bound. A separate native semver check
 
 | Suite | Assertions |
 | --- | ---: |
-| Eleven-game collection transfers, 110 routes and roundtrips | 1049 |
+| Eleven-game collection transfers, 110 routes and roundtrips | 1778 |
 | Sandbox runtime handoffs, 110 routes and starter regressions | 1064 |
 | GB native DVs / stat experience, all 18 directed routes | 377 |
 | Native all-game save schemas / Ruby-Sapphire initialization | 54 |
@@ -22,9 +22,10 @@ The manifest uses `>=0.3.54` with no upper bound. A separate native semver check
 | Transition timing/refresh/cleanup | 48 |
 | Cold Gen 1/2 dependency boundary and native options | 105 |
 | Older-generation bridge isolation / native Gen 2 options persistence | 119 |
-| Travel panel native input / scaled touch / pagination | 56 |
+| Travel panel artwork / grouped input / scaled touch / pagination | 184 |
+| Archived held-item travel and roundtrips | 197 |
 | Native Gen 1 Oak intro / imported GB-GBA party / revisit / recall / lost-NPC recovery | 14207 |
-| **Total per engine version** | **18900** |
+| **Total per engine version** | **19954** |
 
 Collection tests cover reserve retention, unsupported moves/items, overflow, releases, sparse-to-compact boxes and synthetic expanded registries. Runtime tests execute production code through the real sandbox with mocked native service owners, checking retained host identity, independent stories and rollback. Native schema tests use actual engine save modules with synthetic ROM datasets. Ruby/Sapphire truck/reset-script requests and callbacks are checked; original ROM event bytecode is not executed.
 
@@ -45,3 +46,5 @@ The Oak suite executes native Red/Blue/Yellow story scripts, TextBox, StateStack
 A negative control reproduces silent Oak arrival by removing the exact moving Oak actor from the NPC update list while leaving it visible. A presses cannot unblock the pending native movement callback. Protection reinserts the original actor and completes the same native scene without skipping dialogue or changing flags directly. This is a tested failure mode, not proof of the exact spontaneous cause on the user's save.
 
 A private integration matrix also runs 48 full native intros with the installed WildFollowers 3.0.0-beta.4 controller, extracted dialogue, native Oak STAY/NONE behavior, entry columns 8 through 11 and four RNG seeds: all finish with zero overlaps (unprotected control: 48 overlaps). Private extracted game data and diagnostic fixtures are excluded from the release. The installed 0.3.58 native story scripts were checked, and its full automated suite passes. Full graphical acceptance of the reported save remains pending.
+
+v0.2.7: The workspace was byte-compared against the latest GitHub v0.2.6 release ZIP before editing; every file matched. The repository main branch was older, so publication also synchronizes those previously released fixes. Menu assertions cover lazy single-load asset caching, valid atlas quads, all eleven grouped hitboxes across all eleven source cartridges, current/continue/missing-ROM status, native directional controls, wheel navigation, scaled touch confirmation and unchanged graphics state. All suites pass on 0.3.54 and 0.3.58. Separate native LOVE render snapshots inspect the actual PNG atlas and production draw code for picker, confirmation, overview, missing-ROM notice and 480x320 layout. Gameplay transfer code is preserved from v0.2.6.

@@ -1,0 +1,4 @@
+Hoennto 0.2.6
+Held items no longer exclude their carrier from Gen 1 travel. Archive canonical item identity in the campaign, show the Pokemon without a usable held item in Gen 1, then restore the item on return to a compatible Gen 2/3 game. Preserve archived items across Gen 1 saves and native metadata stripping. Do not recreate items removed or consumed after restoration.
+Reproduced using Cyndaquil holding an Oran Berry from FireRed to Red. Torchic had no held item.
+Existing campaign reserve records can reproject on load. Other unsupported species/moves/mail and incompatible Gen 2/3 items remain reserved.

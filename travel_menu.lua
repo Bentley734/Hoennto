@@ -1,7 +1,13 @@
--- Cartridge-neutral window overlay. Uses LOVE geometry/fonts only.
-return function(C,Bridge,queue)
+-- Cartridge-neutral overlay; artwork loads lazily through the mod asset API.
+return function(C,Bridge,queue,assets)
 local M={}
-local W,H=560,486
+local W,H=900,872
+local order={'red','blue','yellow','gold','silver','crystal','ruby','sapphire','emerald','firered','leafgreen'}
+local atlasRects={
+ red={48,112,393,204},blue={444,112,393,204},yellow={840,112,393,204},gold={1236,112,393,204},
+ silver={48,376,393,204},crystal={444,376,393,204},ruby={840,376,393,204},sapphire={1236,376,393,204},
+ emerald={238,630,398,204},firered={638,630,398,204},leafgreen={1037,630,398,204},
+}
 local games={
  red={name='Red',region='Kanto',gen=1,color={.91,.31,.35}},blue={name='Blue',region='Kanto',gen=1,color={.30,.53,.94}},
  yellow={name='Yellow',region='Kanto',gen=1,color={.94,.75,.24}},gold={name='Gold',region='Johto',gen=2,color={.90,.68,.28}},
@@ -17,16 +23,16 @@ local function layout(w,h)
  return scale,(w-W*scale)/2,(h-H*scale)/2
 end
 local function cardRect(index,overview)
- local row=math.floor((index-1)/2);local col=(index-1)%2
- return 22+col*262,120+row*(overview and 49 or 58),254,overview and 43 or 51
+ local row=math.floor((index-1)/3);local col=(index-1)%3
+ return (row==3 and 170 or 30)+col*280,142+row*160,280,138
 end
 local function rowsFor(game,overview)
  local rows={};local saved=state(game)
- for _,v in ipairs(C.ORDER) do if overview or v~=game.session.version then
+ for _,v in ipairs(order) do
   local ready=Bridge.available(v)
   rows[#rows+1]={version=v,label=games[v].name,ready=ready,
    story=v==game.session.version and 'Current story' or saved.regions and saved.regions[v] and 'Continue story' or 'New story'}
- end end
+ end
  return rows
 end
 function M.close(game)
@@ -35,7 +41,7 @@ function M.close(game)
  if game.touchControls and game.touchControls.reset then game.touchControls:reset() end
 end
 function M.open(game)
- game._hoenntoMenu={rows=rowsFor(game),index=1,mode='choose'}
+ game._hoenntoMenu={rows=rowsFor(game),index=game.session.version=='red' and 2 or 1,mode='choose'}
  game.input:reset()
 end
 function M.overview(game)
@@ -51,6 +57,9 @@ function M.select(game)
  end
  if s.mode=='confirm' then local target=s.target;M.close(game);queue(target);return end
  local row=s.rows[s.index];local ok,reason=Bridge.available(row.version)
+ if row.version==game.session.version then
+  s.mode='notice';s.text='You are already playing Pokemon '..row.label..'. Choose another cartridge to travel.';s.page=nil;s.pages=nil;return
+ end
  if ok then local issues=Bridge.compatibility(game,row.version);if #issues>0 then ok=false;reason=table.concat(issues,'\n\n') end end
  s.target=row.version;s.mode=ok and 'confirm' or 'notice';s.page=nil;s.pages=nil
  s.text=not ok and tostring(reason or 'Destination unavailable.') or nil
@@ -58,13 +67,22 @@ end
 local function move(s,n)
  s.index=(s.index-1+n)%#s.rows+1
 end
+local function vertical(s,delta)
+ local x,y,w=cardRect(s.index);local row=math.floor((s.index-1)/3)
+ local target=(row+delta)%4;local best,distance
+ for n=1,#s.rows do if math.floor((n-1)/3)==target then
+  local nx=cardRect(n);local d=math.abs(nx-x)
+  if not distance or d<distance then best,distance=n,d end
+ end end
+ s.index=best or s.index
+end
 function M.update(game)
  local s=game._hoenntoMenu;if not s then return end
  local i=game.input;i:pollPads();i:step()
  if i:wasPressed('b') or i:wasPressed('start') then M.close(game);return end
  if s.mode=='choose' then
-  if i:wasPressed('down') then move(s,2) end
-  if i:wasPressed('up') then move(s,-2) end
+  if i:wasPressed('down') then vertical(s,1) end
+  if i:wasPressed('up') then vertical(s,-1) end
   if i:wasPressed('right') then move(s,1) end
   if i:wasPressed('left') then move(s,-1) end
  elseif s.mode=='notice' and s.pages then
@@ -88,22 +106,22 @@ function M.hover(game,x,y)
 end
 function M.wheel(game,dy)
  local s=game._hoenntoMenu;if not s then return end
- if s.mode=='choose' and dy~=0 then move(s,dy>0 and -2 or 2)
+ if s.mode=='choose' and dy~=0 then vertical(s,dy>0 and -1 or 1)
  elseif s.mode=='notice' and s.pages then s.page=math.max(1,math.min(#s.pages,s.page+(dy>0 and -1 or 1))) end
 end
 function M.pointer(game,x,y)
  local s=game._hoenntoMenu;if not s then return false end
  x,y=localPoint(x,y)
  if x<0 or x>W or y<0 or y>H then return false end
- if y>=434 and y<=470 then
-  if x>=22 and x<=274 then M.select(game) elseif x>=286 and x<=538 then M.close(game) end
+ if y>=806 and y<=848 then
+  if x>=30 and x<=438 then M.select(game) elseif x>=462 and x<=870 then M.close(game) end
  elseif s.mode=='choose' then local n=hitCard(s,x,y);if n then s.index=n;M.select(game) end end
  return true
 end
 local function color(g,c,a)g.setColor(c[1],c[2],c[3],a or 1)end
 local function fonts(g)
  if not g.newFont then return end
- M.fonts=M.fonts or {title=g.newFont(23),body=g.newFont(15),small=g.newFont(11),card=g.newFont(17)}
+ M.fonts=M.fonts or {title=g.newFont(40),body=g.newFont(19),small=g.newFont(13),card=g.newFont(22),status=g.newFont(13)}
 end
 local function text(g,font,str,x,y,c)
  if M.fonts then g.setFont(M.fonts[font]) end;color(g,c or ink);g.print(str,x,y)
@@ -115,6 +133,27 @@ local function ball(g,x,y,c)
 end
 local function card(g,row,n,selected,overview)
  local x,y,w,h=cardRect(n,overview);local info=games[row.version]
+ if not M.artAttempted then
+  M.artAttempted=true
+  if assets and assets.image and g.newQuad then
+   local ok,image=pcall(function()return assets:image('assets/travel-buttons.png')end)
+   if ok and image then
+    M.art=image;image:setFilter('linear','linear');M.quads={}
+    local aw,ah=image:getDimensions()
+    for v,r in pairs(atlasRects)do M.quads[v]=g.newQuad(r[1],r[2],r[3],r[4],aw,ah)end
+   end
+  end
+ end
+ if M.art then
+  if selected then
+   color(g,aqua,.13);g.rectangle('fill',x-3,y-3,w+6,h+6,18,18)
+   color(g,aqua);g.setLineWidth(2);g.rectangle('line',x-2,y-2,w+4,h+4,18,18)
+  end
+  color(g,{1,1,1},row.ready and 1 or .4)
+  local r=atlasRects[row.version];g.draw(M.art,M.quads[row.version],x,y,0,w/r[3],h/r[4])
+  text(g,'status',row.ready and row.story:upper() or 'ROM NOT IMPORTED',x+36,y+103,row.ready and {.65,.89,.93} or muted)
+  return
+ end
  color(g,selected and {.13,.25,.30} or {.075,.13,.19});g.rectangle('fill',x,y,w,h,7,7)
  color(g,selected and aqua or {.16,.24,.29});g.setLineWidth(selected and 1.6 or 1);g.rectangle('line',x+.5,y+.5,w-1,h-1,7,7)
  color(g,info.color,row.ready and 1 or .45);g.rectangle('fill',x+9,y+9,3,h-18,2,2)
@@ -122,6 +161,41 @@ local function card(g,row,n,selected,overview)
  text(g,'small',row.ready and row.story or 'Import ROM to visit',x+21,y+(overview and 27 or 32),muted)
  text(g,'small','GEN '..info.gen,x+w-55,y+11,info.color)
  if selected then color(g,aqua);g.circle('fill',x+w-17,y+h-13,3) end
+end
+local continents={
+ {70,170,110,120,220,115,280,160,235,210,185,220,150,290,105,250},
+ {195,295,260,320,270,390,240,470,215,430,210,360},
+ {385,150,460,115,530,155,600,120,750,170,790,240,720,260,665,220,610,295,540,240,475,220},
+ {440,245,510,255,545,315,505,405,465,365,440,305},
+ {680,410,745,390,780,435,720,465},
+}
+local function inside(poly,x,y)
+ local hit=false;local j=#poly-1
+ for i=1,#poly,2 do
+  local xi,yi,xj,yj=poly[i],poly[i+1],poly[j],poly[j+1]
+  if (yi>y)~=(yj>y) and x<(xj-xi)*(y-yi)/(yj-yi)+xi then hit=not hit end
+  j=i
+ end
+ return hit
+end
+local function backdrop(g)
+ color(g,{.025,.065,.12});g.rectangle('fill',0,0,W,H,14,14)
+ -- A quiet dotted map keeps the supplied card artwork in the foreground.
+ color(g,{.10,.37,.43},.25)
+ if not M.mapDots then
+  M.mapDots={}
+  for y=90,730,9 do for x=50,850,9 do
+   for _,p in ipairs(continents)do if inside(p,x,y)then M.mapDots[#M.mapDots+1]={x,y};break end end
+  end end
+ end
+ for _,p in ipairs(M.mapDots)do g.circle('fill',p[1],p[2],1.5)end
+ for i=1,24 do local x=16+(i*173)%868;local y=18+(i*137)%710
+  color(g,aqua,.16);g.circle('fill',x,y,3);color(g,aqua,.6);g.circle('fill',x,y,1)
+ end
+end
+local function divider(g,y,label)
+ color(g,{.16,.46,.49},.8);g.rectangle('fill',30,y+8,300,1);g.rectangle('fill',570,y+8,300,1)
+ if M.fonts then g.setFont(M.fonts.small)end;color(g,muted);g.printf(label,330,y,240,'center')
 end
 local function paragraphs(s,g)
  if s.pages then return end
@@ -142,43 +216,45 @@ function M.draw(game)
  local s=game._hoenntoMenu;if not s then return end
  local g=love.graphics;local w,h=g.getDimensions();local scale,ox,oy=layout(w,h)
  g.push('all');g.origin();g.setShader();g.setScissor();if g.setStencilTest then g.setStencilTest()end
- color(g,{.015,.035,.055},.83);g.rectangle('fill',0,0,w,h)
- g.translate(ox,oy);g.scale(scale,scale);fonts(g)
- color(g,{0,0,0},.28);g.rectangle('fill',4,6,W,H,14,14)
- color(g,{.045,.085,.13});g.rectangle('fill',0,0,W,H,12,12)
- color(g,{.13,.25,.30});g.setLineWidth(1);g.rectangle('line',.5,.5,W-1,H-1,12,12)
- color(g,aqua);g.rectangle('fill',22,22,29,3,2,2)
- text(g,'small','REGION LINK',61,18,aqua)
- text(g,'title','Hoennto',22,38)
+ color(g,{.015,.035,.055},.90);g.rectangle('fill',0,0,w,h)
+ g.translate(ox,oy);g.scale(scale,scale);fonts(g);backdrop(g)
+ color(g,aqua);g.rectangle('fill',30,30,42,4,2,2)
+ text(g,'body','REGION LINK',84,21,aqua)
+ text(g,'title','Hoennto',30,48)
  local source=games[game.session.version]
- text(g,'small','FROM '..source.name:upper()..'  /  '..source.region:upper(),198,50,muted)
- ball(g,524,42,source.color)
- color(g,{.13,.22,.27});g.rectangle('fill',22,83,516,1)
- text(g,'body',s.mode=='overview' and 'Your eleven stories' or s.mode=='confirm' and 'Ready to depart?' or s.mode=='notice' and 'Before you travel' or 'Choose your next destination',22,96)
+ text(g,'body','FROM '..source.name:upper()..' / '..source.region:upper(),235,68,muted)
+ -- Teal orbital rings echo the reference's illuminated link emblem.
+ color(g,aqua,.15);g.circle('fill',831,59,28)
+ color(g,aqua,.65);g.setLineWidth(1);g.circle('line',831,59,25)
+ ball(g,831,59,source.color)
+ color(g,{.18,.43,.48});g.rectangle('fill',30,108,840,1)
  if s.mode=='choose' or s.mode=='overview' then
+  divider(g,122,'GEN I');divider(g,282,'GEN II');divider(g,442,'GEN III');divider(g,602,'GEN III (REMAKES)')
   for n,row in ipairs(s.rows) do card(g,row,n,s.mode=='choose' and s.index==n,s.mode=='overview')end
  elseif s.mode=='confirm' then
-  local info=games[s.target];color(g,{.08,.16,.22});g.rectangle('fill',22,128,516,78,8,8)
-  ball(g,52,167,info.color);text(g,'title',info.name,76,143)
-  text(g,'small',info.region:upper()..'  /  GENERATION '..info.gen..'  /  '..s.rows[s.index].story:upper(),77,176,info.color)
-  text(g,'body','Your current game saves before departure.',24,228)
-  text(g,'body','Compatible Pokemon travel with you.',24,262,aqua)
+  text(g,'body','Ready to depart?',30,142,aqua)
+  local info=games[s.target]
+  -- The same supplied cartridge artwork identifies the confirmation target.
+  g.push();g.translate(280,70);card(g,s.rows[s.index],1,false,false);g.pop()
+  text(g,'body','Your current game saves before departure.',145,412)
+  text(g,'body','Compatible Pokemon travel with you.',145,456,aqua)
   if M.fonts then g.setFont(M.fonts.body)end;color(g,muted)
-  g.printf('Unsupported species, moves, held items and storage overflow stay in campaign reserve until a compatible destination is available.',24,289,490)
-  text(g,'small','Each cartridge keeps its own story, badges and bag.',24,366,muted)
+  g.printf('Unsupported species, moves, held items and storage overflow stay in campaign reserve until a compatible destination is available.',145,506,610)
+  text(g,'small','Each cartridge keeps its own story, badges and bag.',145,626,muted)
  else
+  text(g,'body','Before you travel',30,142,aqua)
   paragraphs(s,g);if M.fonts then g.setFont(M.fonts.body)end;color(g,ink)
-  g.printf(s.pages[s.page],24,132,492)
-  if #s.pages>1 then text(g,'small','PAGE '..s.page..' / '..#s.pages..'  -  LEFT / RIGHT',24,389,aqua)end
+  g.printf(s.pages[s.page],145,210,610)
+  if #s.pages>1 then text(g,'small','PAGE '..s.page..' / '..#s.pages..'  -  LEFT / RIGHT',145,680,aqua)end
  end
  if s.mode=='choose' or s.mode=='overview' then
-  text(g,'small','RESERVE  '..tostring(state(game).reserveCount or 0)..' Pokemon',24,417,aqua)
-  text(g,'small',s.mode=='choose' and 'D-PAD: CHOOSE  /  TAP A CARD' or 'ONE TRAINER. INDEPENDENT PROGRESS.',269,417,muted)
+  text(g,'body','RESERVE: '..tostring(state(game).reserveCount or 0)..' POKEMON',30,772,aqua)
+  text(g,'small',s.mode=='choose' and 'D-PAD: CHOOSE / TAP A CARD' or 'ONE TRAINER. INDEPENDENT PROGRESS.',565,778,muted)
  end
- local action=s.mode=='confirm' and 'A   Travel' or s.mode=='notice' and s.page<#s.pages and 'A   Next page' or (s.mode=='notice' or s.mode=='overview') and 'A   Close' or 'A   Select'
- color(g,{.17,.48,.43});g.rectangle('fill',22,440,252,29,6,6)
- color(g,{.11,.18,.24});g.rectangle('fill',286,440,252,29,6,6)
- text(g,'body',action,38,446);text(g,'body',s.mode=='overview' and 'B   Close' or 'B   Cancel',302,446,muted)
+ local action=s.mode=='confirm' and 'A   TRAVEL' or s.mode=='notice' and s.page<#s.pages and 'A   NEXT PAGE' or (s.mode=='notice' or s.mode=='overview') and 'A   CLOSE' or 'A   SELECT'
+ color(g,{.17,.52,.44});g.rectangle('fill',30,806,408,42,10,10)
+ color(g,{.11,.18,.24});g.rectangle('fill',462,806,408,42,10,10)
+ text(g,'body',action,52,816);text(g,'body',s.mode=='overview' and 'B   CLOSE' or 'B   CANCEL',484,816,muted)
  g.pop()
  if game.touchControls and game.touchControls.draw then game.touchControls:draw() end
 end

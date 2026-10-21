@@ -1,3 +1,20 @@
+# Hoennto 0.2.7 beta - illustrated travel menu
+
+- Replace travel cards with the user's supplied Pokemon cartridge artwork, prepared as one transparent atlas.
+- Match the supplied layout reference with generation dividers, centered FireRed/LeafGreen, a quiet dotted map, teal header and footer controls.
+- Keep all eleven stories visible; draw current/continue/new story and missing-ROM status from live state. Current cartridge selection shows an explanatory notice instead of queueing travel.
+- Adapt directional navigation, hover, touch, wheel and confirmation to the grouped layout; cache artwork on first draw through mod.assets.
+- Build on the exact GitHub v0.2.6 release package, preserving blank-name and held-item transfer fixes. Synchronize the repository source with that release baseline as well as this update.
+- 19,954 assertions pass on both engine 0.3.54 and 0.3.58. Native LOVE render inspection covers picker, confirmation, overview, missing-ROM notice and a 480x320 window. Full live travel remains outside this visual update's acceptance run.
+
+# Hoennto 0.2.6 beta - held-item travel
+
+- Archive held items when a compatible carrier visits Gen 1, restore them in compatible Gen 2/3 games, and respect later item removal/consumption. See CHANGELOG-0.2.6.txt.
+
+# Hoennto 0.2.5 beta - transferred names
+
+- Repair empty/whitespace display names while preserving real nicknames. See CHANGELOG-0.2.5.txt.
+
 # Hoennto 0.2.4 beta - Oak intro protection and follower recall
 
 - Recall WildFollowers 3 companions before Oak's Gen 1 approach, hold them through the escort/lab speech and restore their normal controller afterward.

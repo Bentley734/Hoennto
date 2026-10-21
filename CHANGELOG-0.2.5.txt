@@ -1,0 +1,3 @@
+Hoennto 0.2.5
+Fix missing Pokemon names after cartridge travel. Normalize blank nicknames and restore species display names on load and transfer, including existing party and boxed Pokemon. Preserve real nicknames.
+Validation: full Hoennto Lua 5.3 regression suite passed, including 363 blank/whitespace/custom nickname cases across all eleven source and destination games.

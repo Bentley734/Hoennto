@@ -1,4 +1,4 @@
-# v0.2.4 native acceptance checklist
+# v0.2.7 native acceptance checklist
 
 Status: pending. Use gen1recomp 0.3.54 or newer and a copied campaign. Record launcher version, source/destination, companions, expected/actual behavior and logs.
 
@@ -8,7 +8,7 @@ Status: pending. Use gen1recomp 0.3.54 or newer and a copied campaign. Record la
 - Verify native text speed/battle style and other games' options survive Gen 2 saves and travel.
 - Exercise all 110 routes; save, quit and reopen every linked slot.
 - Upgrade a v0.1.7 campaign; verify identity, collection and old story links.
-- Check controller, keyboard, mouse, touch, scrolling and resized windows.
+- Check controller, keyboard, mouse, touch, scrolling and resized windows. Confirm the three-column generation groups, centered remake row, atlas art, selection outline and live status. The current cartridge must never queue travel. Native LOVE rendering has been inspected; full launcher gameplay remains pending.
 - Verify fades/spinner, held-input isolation and failed-load source rollback.
 - Complete first-visit starter events with a full party in all games, including Gen 2 clock and each Gen 3 truck profile.
 - Verify separate badges, bags, wallets, flags, daycare and healing locations.

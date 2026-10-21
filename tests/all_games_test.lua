@@ -26,6 +26,23 @@ local function raw(v)
   player={name='ASH',id=42,map=v..'_HOME',gender='male'},map=v..'_HOME',flags={nativeStory=v},money=987,
   party={mon},boxes={},storage={boxes={},items={{id=13,qty=9}}},dex={},pokedex={},modData={}}
 end
+-- Include same-generation/same-game repair, blank imported nicknames, and
+-- real nicknames. Native battle/party expressions must both resolve a name.
+for _,source in ipairs(C.ORDER) do for _,target in ipairs(C.ORDER) do
+ for _,nickname in ipairs({'','   ','TRAVELER'}) do
+  local original=raw(source);original.party[1].nickname=nickname;original.party[1].name=''
+  local state=C.capture(original);local arrived=raw(target);R.project(arrived,state)
+  local mon=arrived.party[1]
+  eq(mon.nickname or mon.name,nickname=='TRAVELER' and 'TRAVELER' or 'PIKACHU',source..' -> '..target..' display name')
+  eq(mon.nickname,nickname=='TRAVELER' and nickname or nil,'blank nickname normalized without replacing custom names')
+ end
+end end
+local damaged=raw('red');damaged.party[1].nickname='';damaged.party[1].name=''
+damaged.boxes={{ {species='PIKACHU',nickname='',name=''} }}
+R.repairNames(damaged)
+eq(damaged.party[1].nickname,nil,'existing party repaired on load')
+eq(damaged.boxes[1][1].nickname,nil,'existing boxed Pokemon repaired on load')
+eq(damaged.boxes[1][1].name,'PIKACHU','boxed species display restored')
 for _,source in ipairs(C.ORDER) do for _,target in ipairs(C.ORDER) do if source~=target then
  local state=C.capture(raw(source));local arrived=raw(target)
  R.project(arrived,state)
@@ -45,7 +62,7 @@ for _,source in ipairs(C.ORDER) do for _,target in ipairs(C.ORDER) do if source~
 end end end
 local source=raw('firered');source.party[2]={species=9999,level=5,moves={33},hp=20}
 source.party[3]={species=1,level=5,moves={9999},hp=20}
-source.party[4]={species=1,level=5,moves={33},item=9999,hp=20}
+source.party[4]={species=1,level=5,moves={33},item=9999,mail={text='LETTER'},hp=20}
 local state=C.capture(source);local old=raw('red');R.project(old,state)
 eq(#old.party,1,'unsupported species/move/item excluded')
 eq(state.reserveCount,3,'all unsupported records counted')
