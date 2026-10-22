@@ -13,6 +13,7 @@ return function(mod)
   module('oak_intro.lua')(mod, getGame)
   local MountLifecycle = module('mount_lifecycle.lua')
   local Campaign = module('campaign.lua')
+  local Rival = module('rival.lua')(Campaign,getGame)
   local Adapter=module('runtime.lua')
   Campaign.runtime=Adapter
   Campaign.roster=module('roster.lua')(Campaign,getGame)
@@ -102,6 +103,7 @@ return function(mod)
   mod.events:on('save.loading',function(ev)
     local raw=ev.raw;local state=raw and raw.modData and raw.modData[Campaign.KEY]
     if state and state.collection then Campaign.roster.project(raw,state) end
+    Campaign.applyRival(raw,state)
     Campaign.roster.repairNames(raw)
   end,-100000)
 
@@ -110,6 +112,8 @@ return function(mod)
     if not game then return end
     liveGame=game
     Adapter.bind(game)
+    Campaign.applyRival(game.session)
+    Rival.install(game)
     -- Wrap the complete update, rather than switching inside a fixed step,
     -- menu callback, VM instruction or renderer invocation.
     local savedState=game.session and game.session.modData and game.session.modData[Campaign.KEY]
@@ -246,5 +250,5 @@ return function(mod)
     return Bridge.syncWildOptions(getGame())
   end
   mod.exports.transfer=Campaign.roster
-  mod.exports.version = '0.2.7'
+  mod.exports.version = '0.2.8'
 end

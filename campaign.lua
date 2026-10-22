@@ -21,6 +21,43 @@ function C.generation(v)
   return 3
 end
 function C.validVersion(v) for _,id in ipairs(C.ORDER) do if v==id then return true end end return false end
+local function named(value)
+  return type(value)=='string' and value:match('%S') and not value:match('^%?+$') and value or nil
+end
+function C.rivalName(raw)
+  if not raw then return nil end
+  local gen=C.generation(raw.version)
+  if gen==1 then return named(raw.player and raw.player.rival) end
+  if gen==2 then return named(raw.rival and raw.rival.name) end
+  local name=named(raw.rivalName)
+  if name then return name end
+  if raw.version=='ruby' or raw.version=='sapphire' or raw.version=='emerald' then
+    return (raw.gender==1 or raw.gender=='female') and 'BRENDAN' or 'MAY'
+  end
+end
+-- Called only at departure: ordinary saves cannot elect a campaign rival.
+function C.beginRival(raw,state)
+  if not state.rival then state.rival={source=raw.version} end
+  if state.rival.source==raw.version and not state.rival.name then
+    state.rival.name=C.rivalName(raw)
+  end
+end
+function C.linkedRival(raw,state)
+  state=state or raw and raw.modData and raw.modData[C.KEY]
+  local rival=state and state.rival
+  if rival and rival.source~=raw.version and state.slots and state.slots[raw.version] then
+    return named(rival.name)
+  end
+end
+function C.applyRival(raw,state)
+  if not raw then return end
+  local name=C.linkedRival(raw,state)
+  if not name then return end
+  local gen=C.generation(raw.version)
+  if gen==1 then raw.player=raw.player or {};raw.player.rival=name
+  elseif gen==2 then raw.rival=raw.rival or {};raw.rival.name=name
+  else raw.rivalName=name end
+end
 -- Version-1 campaigns remain compatible; old saves infer their Kanto game.
 function C.kantoVersion(state)
   if type(state) ~= "table" then return nil end
@@ -122,6 +159,8 @@ end
 function C.capture(raw, state)
   state = state or C.state(raw)
   assert(C.validVersion(raw.version), "unsupported campaign region")
+  if state.rival then C.beginRival(raw,state) end
+  C.applyRival(raw,state)
   state.revision = (state.revision or 0) + 1
   state.active = raw.version
   if C.isKanto(raw.version) then state.kantoVersion = raw.version end
@@ -139,6 +178,7 @@ function C.restore(state, version)
   if not snapshot then return nil end
   local raw = C.copy(snapshot)
   if not state.collection then C.apply(raw,state.shared) end
+  C.applyRival(raw,state)
   raw.modData[C.KEY] = C.copy(state)
   return raw
 end

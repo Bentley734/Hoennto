@@ -1,3 +1,12 @@
+# Hoennto 0.2.8 beta - campaign rival names
+
+- Remember the main rival name from the first Hoennto departure and apply it to mod-created destination saves, including existing linked stories on load/revisit.
+- Use native Gen 1 player.rival, Gen 2 rival.name and Gen 3 rivalName fields; preserve the original source and unrelated saves.
+- Make Hoenn's gender-based rival placeholders and main rival trainer presentation use the campaign name. Preserve Wally, unrelated trainers, ROM definitions and native trainer-party construction.
+- Reuse the known name at the linked Gen 2 police naming event while resuming the native continuation exactly once; the source naming event remains native.
+- Do not replace the first chosen name on later trips. Existing campaigns choose their source on the next departure; unnamed Gen 2 source rivals wait for their own naming event.
+- 20,917 automated assertions pass on both engine 0.3.54 and 0.3.58, including 953 rival transfer/presentation checks and all eleven native destination save paths. Full live storyline acceptance remains pending.
+
 # Hoennto 0.2.7 beta - illustrated travel menu
 
 - Replace travel cards with the user's supplied Pokemon cartridge artwork, prepared as one transparent atlas.

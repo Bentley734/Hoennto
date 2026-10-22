@@ -246,6 +246,7 @@ function Bridge.prepare(game, target)
   -- Register the linked slots before the single source checkpoint. The
   -- native save below persists the live script store and captures all changes.
   local state = Campaign.state(game.save)
+  Campaign.beginRival(game.session,state)
   state.travelGuideSeen=true
   local source = game.session.version
   if Campaign.isKanto(source) then state.kantoVersion=source
@@ -288,6 +289,7 @@ function Bridge.resume(game, payload)
   if Campaign.generation(version)<3 then
     local isNew=not raw
     raw=raw or Campaign.runtime.newSave(game,version,state.shared)
+    Campaign.applyRival(raw,state)
     if Campaign.roster then Campaign.roster.project(raw,state) else Campaign.apply(raw,state.shared) end
     raw.modData=raw.modData or {};raw.modData[Campaign.KEY]=Campaign.copy(state)
     Campaign.runtime.resume(game,raw,isNew)
@@ -308,6 +310,7 @@ function Bridge.resume(game, payload)
       gender = state.shared.gender, trainerIdLower = state.shared.trainerId,
       engineOptions = game.options })
     raw = Schema.toSaveTable(session)
+    Campaign.applyRival(raw,state)
     Campaign.apply(raw, state.shared)
     if Campaign.roster then Campaign.roster.project(raw,state) end
     session = Schema.fromSaveTable(raw)

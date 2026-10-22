@@ -45,6 +45,7 @@ for _,v in ipairs(C.ORDER)do
   local session=Schema.fromSaveTable(restored)
   eq(session.version,v,'native continue schema accepts regional snapshot')
   state.regions[v]=nil
+  state.rival={source='red',name='gary'};state.slots[v]=3
   local rules=Schema.rulesFor(v);local nativeFinish=rules.finishNewGameInit
   local nativeScript=rules.runScriptImmediately
   local nativeInit=rules.newGameInit
@@ -60,6 +61,8 @@ for _,v in ipairs(C.ORDER)do
   rules.runScriptImmediately=nativeScript
   rules.newGameInit=nativeInit
   eq(game.session.version,v,'Bridge uses native first-visit schema')
+  eq(game.session.rivalName,'gary','Bridge seeds the rival before native GBA field entry')
+  eq(Schema.fromSaveTable(Schema.toSaveTable(game.session)).rivalName,'gary','native GBA save roundtrip retains rival')
   eq(game.callback,(Profile.of(v).boot or {}).newGameFieldCallback,'Bridge uses correct native opening callback')
  end
 end
