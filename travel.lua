@@ -218,6 +218,10 @@ function Bridge.prepareSave(game, raw)
   game.session.modData[Campaign.KEY] = state
 end
 function Bridge.afterSave(game, raw)
+  -- The source checkpoint is already durable. Arrival's save refreshes all
+  -- peers once; repeating every large campaign write before loading doubles
+  -- the disk/serialization work without improving rollback safety.
+  if game._hoenntoDepartureSave then return end
   local state = raw.modData and raw.modData[Campaign.KEY]
   if not state then return end
   local SD = req("src.core.SaveData")
@@ -273,7 +277,12 @@ function Bridge.prepare(game, target)
   bindOptions(game)
   game.session.modData = game.session.modData or {}
   game.session.modData[Campaign.KEY] = state
-  if game:saveGame() ~= true then return nil, "Could not save the campaign. Travel canceled." end
+  local previous=game._hoenntoDepartureSave
+  game._hoenntoDepartureSave=true
+  local saved,result=pcall(game.saveGame,game)
+  game._hoenntoDepartureSave=previous
+  if not saved then error(result,0) end
+  if result ~= true then return nil, "Could not save the campaign. Travel canceled." end
   state = Campaign.copy(game.save.modData[Campaign.KEY])
   return { source = source, target = target, state = state }
 end

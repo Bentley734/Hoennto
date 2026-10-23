@@ -11,7 +11,7 @@ One trainer across all eleven native stories on gen1recomp **0.3.54 or newer**: 
 
 The travel menu uses the supplied illustrated cartridge buttons, grouped as Gen I, Gen II, Gen III and Gen III remakes. All eleven stories stay visible, including the current cartridge. Labels show live new/continuing/current story and ROM availability. Use the D-pad, mouse hover/wheel or tap a card; confirm before departure. Long setup notices support pages. Artwork is cached lazily and uses the same native-independent overlay on all games.
 
-Missing imports and detected companion mismatches explain what to fix before departure. Fades and the bottom-right rotating Pokeball remain enabled. Loading is synchronous: individual blocking operations can pause the spinner between refresh checkpoints.
+Missing imports and detected companion mismatches explain what to fix before departure. Fades and the bottom-right rotating Pokeball remain enabled. Loading remains synchronous. The spinner refreshes during campaign copying and byte-compatible save serialization as well as cache/graphics checkpoints. Native file writes, audio shutdown and other indivisible engine calls can still pause it. Older-game registry lookup indexes rebuild per projection, and travel refreshes linked saves once after arrival instead of repeating the full peer pass at departure. The source checkpoint is still saved before unloading anything.
 
 ## Pokemon and stories
 
@@ -39,7 +39,7 @@ The launcher requirement has a minimum of 0.3.54 and no upper version limit. Lau
 
 ## Beta validation
 
-**20,917 headless assertions pass on engine 0.3.54 and 0.3.58**, including all 110 directed routes and return trips, actual mod sandbox execution and native save schemas for eleven games. The runtime fixture uses the native Gen 1 loader facade and checks newly received Squirtle across all nine Gen 1-to-Gen 2 routes. A separate integration run passes with the installed 1025Dex transfer/storage adapters. Strict startup tests reject all Gen 3 module requests from Gen 1/2; native Gen 2 settings read/write also runs in the suite. Runtime mount/render services use fixtures. Full native graphical playthroughs remain pending. See [VALIDATION.md](VALIDATION.md) and [LIVE_TESTING.md](LIVE_TESTING.md).
+**21,238 headless assertions pass on engine 0.3.54 and 0.3.58; 21,268 pass on installed 0.3.95**, including all 110 directed routes and return trips, actual mod sandbox execution and native save schemas for eleven games. The runtime fixture uses the native Gen 1 loader facade and checks newly received Squirtle across all nine Gen 1-to-Gen 2 routes. A separate integration run passes with the installed 1025Dex transfer/storage adapters. Strict startup tests reject all Gen 3 module requests from Gen 1/2; native Gen 2 settings read/write also runs in the suite. Runtime mount/render services use fixtures. Full native graphical playthroughs remain pending. See [VALIDATION.md](VALIDATION.md) and [LIVE_TESTING.md](LIVE_TESTING.md).
 
 Based on the [Pokemon Gen 1 Recompilation Project](https://github.com/bryanthaboi/gen1recomp) by BOIS CLUB GAMES, LLC; inspired by Johnto region travel. No ROMs, launcher executable or extracted game art are redistributed.
 

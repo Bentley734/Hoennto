@@ -1,7 +1,7 @@
 package.path='./?.lua;./?/init.lua;'..package.path
 local Sandbox=require('src.mods.Sandbox')
 local root=arg[1] or 'mods/kanto_hoenn'
-local reads={};for _,f in ipairs({'main.lua','oak_intro.lua','rival.lua','session_options.lua','transition.lua','campaign.lua','travel.lua','mount_lifecycle.lua','presentation.lua','reset_menu.lua','runtime.lua','roster.lua','travel_menu.lua'}) do local s=assert(io.open(root..'/'..f)):read('*a');reads[f]=s end
+local reads={};for _,f in ipairs({'main.lua','oak_intro.lua','rival.lua','session_options.lua','transition.lua','save_encoder.lua','campaign.lua','travel.lua','mount_lifecycle.lua','presentation.lua','reset_menu.lua','runtime.lua','roster.lua','travel_menu.lua'}) do local s=assert(io.open(root..'/'..f)):read('*a');reads[f]=s end
 local C=assert(load(reads['campaign.lua']))()
 local callbacks,hooks={},{}
 local rawGame
@@ -70,7 +70,7 @@ end
 package.loaded['src.ui.game3.hud']={openMessage=function(_,m)error('unexpected notice: '..m)end}
 package.loaded['src.core.game3.options']={bind=function(s,o)s.options=o end,block=function(o,id)o[id]=o[id]or{};return o[id]end}
 package.loaded['src.core.game3.profile']={of=function(id)return {optionsBlock=id}end}
-package.loaded['src.mods.Runtime']={wants=function(name)return callbacks[name]~=nil end,emit=emit}
+package.loaded['src.mods.Runtime']={wants=function(name)return callbacks[name]~=nil end,wantsHook=function()return false end,emit=emit}
 local Schema={}
 Schema.toSaveTable=function(s)local r=C.copy(s);r.options=nil;return r end
 Schema.fromSaveTable=function(s)return C.copy(s)end

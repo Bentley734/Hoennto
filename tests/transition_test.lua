@@ -55,6 +55,22 @@ local success,err=T.withRefresh(game,function()cache.read('error');error('destin
 eq(success,false,'destination exception returned');eq(tostring(err):find('destination load failure',1,true)~=nil,true,'load error retained')
 eq(cache.read,read,'failure restores cache wrapper');eq(graphics.newImage,image,'failure restores graphics wrapper')
 eq(canvas,'engine-canvas','failure restores canvas');eq(pushes,0,'failure restores graphics stack')
+local Serializer=require('src.core.SaveSerializer')
+local nativeEncode=Serializer.encode
+local Encoder=assert(loadfile(root..'/save_encoder.lua'))()
+local large={};for i=1,3000 do large[i]={id=i,name='MON '..i}end
+local before=presents
+local encoded=T.withRefresh(game,function()
+  eq(Serializer.encode(large),nativeEncode(large),'travel serializer keeps native save bytes')
+end,function(data,pulse)
+  return Encoder(data,function()time=time+.04;pulse(false)end)
+end)
+eq(encoded,true,'CPU-heavy save serialization completes')
+eq(presents>before+10,true,'spinner refreshes inside one CPU-heavy encode call')
+eq(Serializer.encode,nativeEncode,'travel restores native serializer')
+local failed=T.withRefresh(game,function()Serializer.encode({bad=function()end})end,Encoder)
+eq(failed,false,'serializer failure returns to travel error handling')
+eq(Serializer.encode,nativeEncode,'serializer restored after encode failure')
 failDraw=true
 local refreshed=T.withRefresh(game,function()cache.read('draw failure')end)
 eq(refreshed,true,'graphics failure never cancels travel');eq(pushes,0,'graphics failure restores all pushes')

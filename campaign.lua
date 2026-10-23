@@ -2,6 +2,7 @@
 local C = { KEY = "kanto_hoenn", VERSION = 2 }
 local SHARED = { "name", "gender", "trainerId", "secretId", "party", "mail", "move_overlay", "playTime" }
 local sharedKeys={}
+local copyWork=0
 for _,key in ipairs(SHARED) do sharedKeys[key]=true end
 function C.copy(value, ancestors)
   if type(value) ~= "table" then return value end
@@ -9,7 +10,13 @@ function C.copy(value, ancestors)
   assert(not ancestors[value], "cyclic campaign data")
   ancestors[value] = true
   local out = {}
-  for k, v in pairs(value) do out[k] = C.copy(v, ancestors) end
+  for k, v in pairs(value) do
+    if C.progress then
+      copyWork=copyWork+1
+      if copyWork%256==0 then C.progress(false) end
+    end
+    out[k] = C.copy(v, ancestors)
+  end
   ancestors[value] = nil
   return out
 end

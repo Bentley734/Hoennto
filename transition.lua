@@ -70,7 +70,7 @@ end
 -- rather than claiming a background loader. One indivisible C call or Lua
 -- computation can still pause the spinner. Only OS event pumping occurs here;
 -- quit/input remain queued for the host's normal loop after the handoff.
-function T.withRefresh(game,fn)
+function T.withRefresh(game,fn,encoder)
   local g=love and love.graphics
   local last=-math.huge
   local busy,disabled,active=false,false,true
@@ -113,8 +113,15 @@ function T.withRefresh(game,fn)
   for _,key in ipairs({'readAt','read','readActive','loadActive','write','mountVersion'}) do wrap(Cache,key) end
   -- Image uploads and generated data loads can be slow even after a cache read.
   for _,key in ipairs({'newImage','newImageData','newFont'}) do wrap(g,key) end
+  if encoder then
+    local Serializer=require('src.core.SaveSerializer')
+    local original=Serializer.encode
+    local replacement=function(data)return encoder(data,pulse)end
+    Serializer.encode=replacement
+    replacements[#replacements+1]={object=Serializer,key='encode',original=original,replacement=replacement}
+  end
   pulse(true)
-  local result=pack(pcall(fn))
+  local result=pack(pcall(fn,pulse))
   -- Restore even on destination/rollback failure; never overwrite a replacement
   -- another mod deliberately installed during its own initialization.
   for i=#replacements,1,-1 do

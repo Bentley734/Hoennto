@@ -1,3 +1,11 @@
+# Hoennto 0.2.9 beta - faster travel and loading refresh
+
+- Build temporary reverse indexes for older-game species/move/item lookups during collection projection. Rebuild on each projection and follow live registry replacement; companion resolver overrides remain active.
+- Avoid writing every linked peer save twice per trip. Save the source checkpoint before unloading, then refresh all peers from the arrival save. Normal saves still update all peers; source-save failure still cancels travel and rollback remains available.
+- Add presentation checkpoints inside large campaign copies and a temporary travel-only save encoder. The encoder matches native save bytes and retains the native recursive JIT safeguard; SaveData still owns temporary-file writes, verification and recovery. Restore the native encoder after travel/error.
+- 21,238 assertions pass on 0.3.54 and 0.3.58; 21,268 pass on installed 0.3.95. Native LuaJIT adds 80 save parity/reader checks with forced GC and unchanged global JIT settings.
+- Synthetic 1025-species / 300-Pokemon projection: 5.66s before, 0.011s after, identical output. This measures collection projection, not complete travel. Native disk/graphics/audio operations can still pause animation; full live travel timing remains unmeasured.
+
 # Hoennto 0.2.8 beta - campaign rival names
 
 - Remember the main rival name from the first Hoennto departure and apply it to mod-created destination saves, including existing linked stories on load/revisit.

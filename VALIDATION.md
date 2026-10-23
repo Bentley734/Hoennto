@@ -1,6 +1,6 @@
-# Validation - v0.2.8 beta
+# Validation - v0.2.9 beta
 
-Executed against gen1recomp 0.3.54 and the installed 0.3.58 source using Lua 5.3 / Lupa 2.8 and a LuaJIT-style bit shim. Each suite uses a fresh VM.
+Executed against gen1recomp 0.3.54 0.3.58 and installed 0.3.95 source using Lua 5.3 / Lupa 2.8 and a LuaJIT-style bit shim. Each suite uses a fresh VM.
 
 The manifest uses `>=0.3.54` with no upper bound. A separate native semver check accepts 0.3.54, 0.3.55, 0.4.0 and 1.0.0, and rejects 0.3.53. This verifies launcher range handling; gameplay validation below identifies the engine source used.
 
@@ -19,14 +19,16 @@ The manifest uses `>=0.3.54` with no upper bound. A separate native semver check
 | LeafGreen/schema/manifest | 50 |
 | Presentation | 22 |
 | Stock Message/Choice | 21 |
-| Transition timing/refresh/cleanup | 48 |
+| Transition timing / CPU encode refresh / cleanup | 140 |
 | Cold Gen 1/2 dependency boundary and native options | 105 |
 | Older-generation bridge isolation / native Gen 2 options persistence | 119 |
 | Travel panel artwork / grouped input / scaled touch / pagination | 184 |
 | Archived held-item travel and roundtrips | 197 |
 | Native Gen 1 Oak intro / imported GB-GBA party / revisit / recall / lost-NPC recovery | 14207 |
 | Campaign rival transfer / native RSE presentation | 953 |
-| **Total per engine version** | **20917** |
+| Travel optimization / native save-byte parity / peer refresh | 229 |
+| **Total (0.3.54 / 0.3.58)** | **21238** |
+| **Total (0.3.95)** | **21268** |
 
 Collection tests cover reserve retention, unsupported moves/items, overflow, releases, sparse-to-compact boxes and synthetic expanded registries. Runtime tests execute production code through the real sandbox with mocked native service owners, checking retained host identity, independent stories and rollback. Native schema tests use actual engine save modules with synthetic ROM datasets. Ruby/Sapphire truck/reset-script requests and callbacks are checked; original ROM event bytecode is not executed.
 
@@ -53,3 +55,11 @@ v0.2.7: The workspace was byte-compared against the latest GitHub v0.2.6 release
 v0.2.8 rival names: 953 assertions exercise all 110 directed game pairs with exact case retention, fixed first-departure identity, native snapshot serialization/revisits, source preservation, unlinked-save isolation, old-campaign adoption, unnamed Gen 2 deferral, real GB save constructors and Bridge arrival paths. Native GBA first-entry tests now check rival fields through actual schema serialization for all five GBA games. Native RSE TextIR expands {RIVAL} for both genders with actual dialects and preserves input placeholder tables. Real RSE trainer constants identify every May/Brendan battle; native trainer-info output is checked, and the foe presentation adapter verifies it preserves the native party/personality result. This adapter fixture does not execute complete ROM battles. Both full suites pass on 0.3.54 and 0.3.58. No Gen 3 dependencies are introduced on Gen 1/2 startup. Full live naming-event and storyline acceptance remains pending.
 
 The rival suite also checks actual native GB dialogue tokens and the Gen 2 World:nameRival continuation: known linked names bypass redundant input and resume once; unlinked/source stories delegate to the native naming event.
+
+v0.2.9 performance: A synthetic live registry with 1025 species, 800 moves and 500 items projects 300 Pokemon and a full seen/owned dex in 5.66s before the index versus 0.011s after it (Lua 5.3, single local run). The entire resulting save source is byte-identical. This is a projection microbenchmark, not a full travel speed claim.
+
+Optimization regressions check registry aliases, in-place expansion between projections, error cleanup and companion resolver participation. Actual departure preparation writes its source once, suppresses peer refresh only there, restores suppression after false/exception results, and still refreshes all ten peers on a normal arrival save. Source durability is not skipped. A separate test invokes a single large encoder call under the transition wrapper and verifies repeated window presents, exact save bytes and native encoder restoration on success/error.
+
+Save encoding matches the native serializer on 104 varied generated data samples and a 5000-record payload; native decoding and re-encoding match too. This travel-only encoder leaves SaveData's validation/atomic-write paths intact. The current 0.3.95 native serializer is byte-identical to 0.3.54. A native LOVE/LuaJIT probe also passes 80 byte-parity/reader assertions across 40 evolving 1000-record payloads with 5298 forced-GC checkpoints and unchanged global JIT settings. Full suites pass on 0.3.54, 0.3.58 and 0.3.95; the 30 extra 0.3.95 checks reflect native Oak scene timing. Test-only fixtures accommodate the newer wantsHook API and Oak demo trainer alias.
+
+Loading remains synchronous: presentation checkpoints cannot interrupt an individual native disk/compression, GPU upload, audio join or other indivisible call. No background-loading or constant-frame-rate guarantee is made. Full live source-to-destination timing was not measured.

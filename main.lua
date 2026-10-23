@@ -19,6 +19,7 @@ return function(mod)
   Campaign.roster=module('roster.lua')(Campaign,getGame)
   local Bridge = module('travel.lua')(Campaign, mod)
   local Transition = module('transition.lua')
+  local SaveEncoder = module('save_encoder.lua')
   local pending, pendingReset
   local TravelMenu=module('travel_menu.lua')(Campaign,Bridge,function(target)pending=target end,mod.assets)
   local function notice(game, message) Bridge.notice(game, message) end
@@ -171,7 +172,12 @@ return function(mod)
         local depart=Transition.tick(self,dt)
         if depart then
           local target=self._hoenntoTransition.target
-          local ok,err=Transition.withRefresh(self,function()travel(self,target)end)
+          local ok,err=Transition.withRefresh(self,function(pulse)
+            local previous=Campaign.progress;Campaign.progress=pulse
+            local success,failure=pcall(travel,self,target)
+            Campaign.progress=previous
+            if not success then error(failure,0) end
+          end,SaveEncoder)
           Transition.finish(self)
           if not ok then notice(self,'Travel canceled: '..tostring(err)) end
         end
@@ -250,5 +256,5 @@ return function(mod)
     return Bridge.syncWildOptions(getGame())
   end
   mod.exports.transfer=Campaign.roster
-  mod.exports.version = '0.2.8'
+  mod.exports.version = '0.2.9'
 end

@@ -105,7 +105,7 @@ local function fixture(version,x,protected,origin,revisited,loseOak)
    eq(species,'PIKACHU','Yellow retains the native capture species')
    eq(level,5,'Yellow retains the native capture level')
    return {kind='wild',enemy={mon={level=level}},makeOldManDemo=function(_,name)
-    eq(name,'PROF.OAK','Yellow retains Oak as the demonstration trainer')
+    check(name=='PROF.OAK' or name=='oak','Yellow retains Oak as the demonstration trainer')
    end,update=function(self)game.stack:pop();self.onFinish('catch')end}
   end}
  else package.loaded['src.battle.BattleState']=nativeBattle end

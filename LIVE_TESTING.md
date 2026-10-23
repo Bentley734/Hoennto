@@ -1,4 +1,4 @@
-# v0.2.8 native acceptance checklist
+# v0.2.9 native acceptance checklist
 
 Status: pending. Use gen1recomp 0.3.54 or newer and a copied campaign. Record launcher version, source/destination, companions, expected/actual behavior and logs.
 
@@ -19,7 +19,7 @@ Status: pending. Use gen1recomp 0.3.54 or newer and a copied campaign. Record la
 - Reset every inactive destination; preserve shared collection and other stories.
 - Verify missing-import and companion mismatch errors before destination slot creation.
 - With eleven-game 1025Dex, test expanded species/move/item IDs, canonical names, load order, dex and reserve recovery across every generation.
-- Measure repeated-trip memory/audio/timings; check Windows shutdown after travel.
+- Measure repeated-trip memory/audio/timings with small and large collections on 0.3.95. Check the spinner during source save, copying, serialization, cache loading and arrival save. Confirm source-save failure cancels departure and every linked slot sees the latest campaign after arrival. Native disk/GPU/audio calls may still pause the indicator. Check Windows shutdown after travel.
 - Complete native stories/postgame and verify launcher release updates.
 
 Companion gating checks targets, per-game enablement and source loading. It cannot certify arbitrary mod combinations or replace native gameplay testing.

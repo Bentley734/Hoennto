@@ -2,6 +2,7 @@
 -- generation; unsupported records and capacity overflow remain in reserve.
 return function(C, getGame)
 local R={}
+local indexes
 local function key(s)
   return tostring(s or ''):upper():gsub('♀','F'):gsub('♂','M'):gsub('[^%w]','')
 end
@@ -28,6 +29,19 @@ function R.resolve(kind,name,gen)
     return require('src.core.game3.items_data').toNumericId(name)
   end
   local rows=data()[kind=='species' and 'pokemon' or kind] or {}
+  if indexes then
+    local cached=indexes[kind]
+    if not cached or cached.rows~=rows then
+      cached={rows=rows,ids={}};indexes[kind]=cached
+      for id,row in pairs(rows) do if type(row)=='table' then
+        for _,value in ipairs({id,row.id or '',row.name or ''}) do
+          local alias=key(value)
+          if alias~='' and cached.ids[alias]==nil then cached.ids[alias]=id end
+        end
+      end end
+    end
+    return cached.ids[key(name)]
+  end
   for id,row in pairs(rows) do
     if type(row)=='table' and (key(id)==key(name) or key(row.id)==key(name) or key(row.name)==key(name)) then return id end
   end
@@ -204,7 +218,7 @@ function R.convert(record,target)
   R.repairNames({version=target,party={m}})
   return m
 end
-function R.project(raw,state)
+local function project(raw,state)
   if not state.collection then return end
   local gen=C.generation(raw.version);local count,cap=gen==1 and 12 or 14,gen==3 and 30 or 20
   local metadata=raw.storage and raw.storage.boxes or {}
@@ -251,6 +265,14 @@ function R.project(raw,state)
   if gen==3 then raw.dex=dex else raw.pokedex=dex end
   state.projected=state.projected or {};state.projected[raw.version]=ids;state.reserveCount=reserve
   raw.modData=raw.modData or {};raw.modData[C.KEY]=C.copy(state)
+end
+function R.project(raw,state)
+  -- A fresh index per projection follows cartridge/1025Dex registry changes.
+  -- Companion-provided resolve functions continue to run normally.
+  local previous=indexes;indexes={}
+  local ok,err=pcall(project,raw,state)
+  indexes=previous
+  if not ok then error(err,0) end
 end
 return R
 end
