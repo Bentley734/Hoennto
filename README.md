@@ -1,6 +1,14 @@
-# Hoennto v0.2.6 beta
+# Hoennto v0.3.0-prepared.2 beta
 
-One trainer across all eleven native stories on gen1recomp **0.3.54 or newer**: Red, Blue, Yellow, Gold, Silver, Crystal, FireRed, LeafGreen, Ruby, Sapphire and Emerald.
+One trainer across all eleven native stories on gen1recomp **0.3.96 or newer**: Red, Blue, Yellow, Gold, Silver, Crystal, FireRed, LeafGreen, Ruby, Sapphire and Emerald.
+
+## First-launch content preparation
+
+On first launch, Hoennto prepares an installation-owned copy of every supported game you have imported: Red, Blue, Yellow, Gold, Silver, Crystal, Ruby, Sapphire, Emerald, FireRed and LeafGreen. A progress screen shows each game being prepared. Later launches and region visits reuse those copies. Games imported later are prepared on the next launch; changed native import revisions rebuild only that game's content.
+
+You do not need all eleven ROMs installed to start. Each game you want to visit must first be imported through the launcher. Preparation uses additional disk space and takes longer the first time. ROMs and generated game content are not included in the ZIP.
+
+Hoennto retains its existing engine transitions and linked regional saves. Content preparation is separate from Two Shores' combined-world runtime. No travel-speed improvement is claimed without measurements on your device.
 
 ## Setup
 

@@ -1,3 +1,18 @@
+## 0.3.0-prepared.2
+
+- Fix Emerald preparation failing on Windows when Battle Frontier filenames exceed the path limit.
+- Use shorter prepared-content directory identities and report the failing filename and storage error.
+- Rebuild prepared content using the new layout; imported ROM content and saves are preserved.
+
+# 0.3.0-prepared.1
+
+- Prepare and retain native content for all eleven supported games on first launch.
+- Reuse unchanged preparations, prepare newly imported games next launch, and rebuild changed import revisions independently.
+- Route native loaders, filesystem mounts and worker asset reads to the prepared copies; preserve native compressed graphics formats.
+- Verify each copied file before publishing a completed preparation; retain the previous completion record for recovery.
+- Preserve the original kanto_hoenn campaign identity, collection and regional save/travel behavior.
+- Based on upstream v0.2.9 / 58133dba648c9d177154634e87846a638a54ee01.
+
 # Hoennto 0.2.9 beta - faster travel and loading refresh
 
 - Build temporary reverse indexes for older-game species/move/item lookups during collection projection. Rebuild on each projection and follow live registry replacement; companion resolver overrides remain active.

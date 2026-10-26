@@ -1,3 +1,33 @@
+## Windows import fix validation (2026-10-26)
+
+All ordinary regression suites pass against the available 0.3.95 engine source; the external linked-save fixture is absent and its test is skipped. A real filesystem run prepared and read-verified all 11,515 installed Emerald files using the compact directory layout, including both longest Battle Frontier filenames. The regression suite enforces the Windows 260-character path ceiling for the failing filename. In-game playthrough and graphical restart remain unverified for this fix.
+
+The notes below describe validation supplied with prepared.1, not new graphical checks performed for prepared.2.
+
+# Prepared-content update validation (2026-10-26)
+
+The existing Hoennto regression suite passes against engine v0.3.96 source, including the fixture-based 110 directed routes and return trips, eleven-game save schemas and the original sandbox handoffs. The optional environment-dependent live linked-save test remains skipped when its external fixture is absent.
+
+New tests cover all eleven preparation identities, warm launches without source asset reads, source imports becoming unavailable, incremental rebuilds, publication failures, all eleven native prefix mappings, repeated mod-load ownership and restoration on exit.
+
+A real LÖVE 11.5 integration run prepared FireRed, LeafGreen and Emerald from the user's extracted game data and reopened them without source adapters. Native mounts, compressed sprite reads, worker audio roots and native map/layout loading passed: 425 + 425 + 518 maps across these three inputs. The test does not play these entire games. Actual Gen 1/2/Ruby/Sapphire asset sets, full graphical story playthroughs, mobile/console/portable platforms and device performance remain unverified for this update.
+
+Reproduce the ordinary suites:
+
+```sh
+python tests/run.py --engine /path/to/gen1recomp
+```
+
+Reproduce native prepared-data mounting with privately extracted data:
+
+```sh
+python tests/run_native_prepared.py --engine /path/to/gen1recomp --imports /private/extracted-caches --love /path/to/love --work /private/test-output
+```
+
+The latter expects firered, leafgreen and emerald subdirectories. Its generated test harness and private game data must not be distributed in the mod ZIP.
+
+---
+
 # Validation - v0.2.9 beta
 
 Executed against gen1recomp 0.3.54 0.3.58 and installed 0.3.95 source using Lua 5.3 / Lupa 2.8 and a LuaJIT-style bit shim. Each suite uses a fresh VM.

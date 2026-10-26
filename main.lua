@@ -13,6 +13,7 @@ return function(mod)
   module('oak_intro.lua')(mod, getGame)
   local MountLifecycle = module('mount_lifecycle.lua')
   local Campaign = module('campaign.lua')
+  local Prepared=mod.cache and module('prepared_content.lua').install(mod,Campaign.ORDER)
   local Rival = module('rival.lua')(Campaign,getGame)
   local Adapter=module('runtime.lua')
   Campaign.runtime=Adapter
@@ -112,6 +113,17 @@ return function(mod)
     local game = ev.game
     if not game then return end
     liveGame=game
+    if Prepared then
+      for _,key in ipairs({'returnToLauncher','onExit'})do
+        local previous=game[key]
+        if previous then game[key]=function(...)
+          local ok,result=pcall(previous,...)
+          Prepared:close()
+          if not ok then error(result,0)end
+          return result
+        end end
+      end
+    end
     Adapter.bind(game)
     Campaign.applyRival(game.session)
     Rival.install(game)
